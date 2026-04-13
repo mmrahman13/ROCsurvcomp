@@ -2,13 +2,13 @@
 
 ## Overview
 
-**ROCsurvcomp** is an R package for ROC-based methods to compare survival curves under **non-proportional hazards (non-PH)**.
+**ROCsurvcomp** is an R package for ROC-based methods to compare survival curves under non-proportional hazards (non-PH).
 Traditional methods such as the log-rank test may lose power when the proportional hazards assumption is violated. This package provides alternative approaches based on ROC curve characteristics.
 
 ## Key Features
 
 - ROC-based comparison of survival curves
-- Designed for **non-proportional hazards (non-PH)** settings
+- Designed for *non-proportional hazards* settings
 - Implements:
   - ROC length-based test
   - Overlap (OVL) measure
