@@ -64,10 +64,12 @@ These methods are especially useful when:
 ## Author
 
 **Mohammod Mahmudur Rahman**
+PhD Student, Department of Biostatistics & Data Science
+University of Kansas Medical Center
 
-PhD Student, Biostatistics
-
-University of Kansas Medical Center (KUMC)
+**Leonidas Bantis**
+Associate Professor, Department of Biostatistics & Data Science
+University of Kansas Medical Center
 
 
 ## Status
