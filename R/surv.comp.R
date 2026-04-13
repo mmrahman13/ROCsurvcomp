@@ -1,0 +1,231 @@
+#' @title Compare Two Survival Distributions Using ROC-Based Methods for Right and Doubly Censored Data
+#'
+#' @description Performs a nonparametric comparison of two survival distributions under
+#' right or double censoring using ROC-based metrics, including ROC curve length,
+#' overlap coefficient (OVL), and a joint ROC length–OVL test.
+#'
+#' @importFrom stats dnorm integrate median optim pnorm qnorm rnorm sd
+#' @importFrom utils tail
+#'
+#' @param time Numeric vector of observed follow-up times (event or censoring times)
+#'   for all observations.
+#' @param status Numeric vector indicating censoring status for each observation:
+#'   \itemize{
+#'     \item For \code{censor_type = "right"}: 0 = event, 1 = right-censored
+#'     \item For \code{censor_type = "double"}: 0 = event, 1 = right-censored, -1 = left-censored.
+#'   }
+#' @param group Numeric vector indicating the group label for each observation.
+#'   Must contain exactly two groups coded as 1 and 2.
+#' @param n_perm Integer specifying the number of permutation samples used to compute p-values.
+#' @param censor_type Character string specifying the the type of censoring.
+#'   Must be either \code{"right"} or \code{"double"}.
+#' @param method Character string specifying the test to perform.
+#'   Must be one of:
+#'   \itemize{
+#'     \item \code{"roc_length"}: ROC curve length-based test
+#'     \item \code{"ovl"}: overlap coefficient-based test
+#'     \item \code{"joint_method"}: joint ROC length and OVL test.
+#'   }
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{message}: A character string describing the testing procedure.
+#'   \item \code{result}: A data frame with rows corresponding to the methods
+#'   (ROC Length, OVL, and/or Joint ROC Length-OVL) and columns:
+#'   \itemize{
+#'     \item \code{estimate}: Estimated values of ROC length and/or OVL
+#'     \item \code{p_value}: Permutation-based two-sided p-values.
+#'   }
+#' }
+#'
+#' @details
+#' This function implements permutation-based two-sided hypothesis tests for comparing
+#' two survival distributions without relying on proportional hazards assumptions.
+#' The ROC length measures global separation between survival curves, while the
+#' overlap coefficient (OVL) quantifies distributional similarity. Density estimation is performed using nonparametric kernel methods,
+#' where the cumulative distribution function (CDF) is estimated
+#' using the Kaplan–Meier estimator under right censoring or the Turnbull estimator under double censoring.
+#'
+#' Input validation is performed to ensure consistency of vector lengths,
+#' censoring indicators, and method specification.
+#'
+#' @examples
+#' \dontrun{
+#' # Example usage
+#' surv.comp(time, status, group, n_perm = 1000,
+#'           censor_type = "right", method = "roc_length")
+#'
+#' surv.comp(time, status, group, n_perm = 1000,
+#'           censor_type = "double", method = "joint_method")
+#' }
+#'
+#' @export
+surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "double"), method = c("roc_length", "ovl", "joint_method")) {
+
+  if (censor_type == "right") {
+
+    time1 <- time[group == 1]
+    censor1 <- status[group == 1]
+    time2 <- time[group == 2]
+    censor2 <- status[group == 2]
+
+    ## -----------------------------
+    ## 0. Check required inputs
+    ## -----------------------------
+    if (missing(time1) || missing(censor1) ||
+        missing(time2) || missing(censor2) || missing(n_perm)) {
+      stop("All arguments (time, status, group, n_perm) must be provided.")
+    }
+
+    ## -----------------------------
+    ## 1. Check missing values
+    ## -----------------------------
+    if (any(is.na(time1), is.na(censor1), is.na(time2), is.na(censor2))) {
+      stop("Missing value exists in one of the variables.")
+    }
+
+    ## -----------------------------
+    ## 2. Check lengths
+    ## -----------------------------
+    if (!(length(time1) == length(censor1) &&
+          length(time2) == length(censor2))) {
+      stop("Length mismatch: time and censor vectors must have the same length within each group.")
+    }
+
+    ## -----------------------------
+    ## 3. Check data types
+    ## -----------------------------
+    if (!is.numeric(time1) || !is.numeric(time2)) {
+      stop("Time variables must be numeric vectors.")
+    }
+
+    if (!is.numeric(censor1) || !is.numeric(censor2)) {
+      stop("Censoring variables must be numeric vectors.")
+    }
+
+    ## -----------------------------
+    ## 4. Check censoring values
+    ## -----------------------------
+    if (!all(censor1 %in% c(0, 1)) || !all(censor2 %in% c(0, 1))) {
+      stop("Censoring variables must contain only 0 (event) and/or 1 (right-censored) values.")
+    }
+
+    ## -----------------------------
+    ## 5. Check n_perm
+    ## -----------------------------
+    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0) {
+      stop("n_perm must be a positive numeric value.")
+    }
+
+    ## -----------------------------
+    ## 6. Check method (strict)
+    ## -----------------------------
+    valid_methods <- c("roc_length", "ovl", "joint_method")
+
+    if (length(method) != 1 || !method %in% valid_methods) {
+      stop("Method must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
+    }
+
+
+    ## -----------------------------
+    ## Run selected method
+    ## -----------------------------
+    if (method == "roc_length") {
+      return(roc_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+    }
+
+    if (method == "ovl") {
+      return(ovl_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+    }
+
+    if (method == "joint_method") {
+      return(joint.roc_ovl_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+    }
+  }
+
+  else if (censor_type == "double") {
+
+    time1 <- time[group == 1]
+    censor1 <- status[group == 1]
+    time2 <- time[group == 2]
+    censor2 <- status[group == 2]
+
+    ## -----------------------------
+    ## 0. Check required inputs
+    ## -----------------------------
+    if (missing(time1) || missing(censor1) ||
+        missing(time2) || missing(censor2) || missing(n_perm)) {
+      stop("All arguments (time, status, group, n_perm) must be provided.")
+    }
+
+    ## -----------------------------
+    ## 1. Check missing values
+    ## -----------------------------
+    if (any(is.na(time1), is.na(censor1), is.na(time2), is.na(censor2))) {
+      stop("Missing value exists in one of the variables.")
+    }
+
+    ## -----------------------------
+    ## 2. Check lengths
+    ## -----------------------------
+    if (!(length(time1) == length(censor1) &&
+          length(time2) == length(censor2))) {
+      stop("Length mismatch: time and censor vectors must have the same length within each group.")
+    }
+
+    ## -----------------------------
+    ## 3. Check data types
+    ## -----------------------------
+    if (!is.numeric(time1) || !is.numeric(time2)) {
+      stop("Time variables must be numeric vectors.")
+    }
+
+    if (!is.numeric(censor1) || !is.numeric(censor2)) {
+      stop("Censoring variables must be numeric vectors.")
+    }
+
+    ## -----------------------------
+    ## 4. Check censoring values
+    ## -----------------------------
+    if (!all(c(0, 1, -1) %in% censor1) || !all(c(0, 1, -1) %in% censor2)) {
+      stop("Censoring variables must contain all three values: 0 = event, 1 = right-censored, -1 = left-censored.")
+    }
+
+    ## -----------------------------
+    ## 5. Check n_perm
+    ## -----------------------------
+    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0) {
+      stop("n_perm must be a positive numeric value.")
+    }
+
+    ## -----------------------------
+    ## 6. Check method (strict)
+    ## -----------------------------
+    valid_methods <- c("roc_length", "ovl", "joint_method")
+
+    if (length(method) != 1 || !method %in% valid_methods) {
+      stop("Method must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
+    }
+
+
+    ## -----------------------------
+    ## Run selected method
+    ## -----------------------------
+    if (method == "roc_length") {
+      return(roc_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+    }
+
+    if (method == "ovl") {
+      return(ovl_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+    }
+
+    if (method == "joint_method") {
+      return(joint.roc_ovl_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+    }
+  }
+
+  else
+    stop("censor_type must be exactly one of: 'right' or 'double'")
+
+}
+
