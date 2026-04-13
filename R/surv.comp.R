@@ -64,67 +64,78 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
 
   if (censor_type == "right") {
 
-    time1 <- time[group == 1]
-    censor1 <- status[group == 1]
-    time2 <- time[group == 2]
-    censor2 <- status[group == 2]
-
     ## -----------------------------
-    ## 0. Check required inputs
+    ## 1. Check required inputs
     ## -----------------------------
-    if (missing(time1) || missing(censor1) ||
-        missing(time2) || missing(censor2) || missing(n_perm)) {
-      stop("All arguments (time, status, group, n_perm) must be provided.")
-    }
-
-    ## -----------------------------
-    ## 1. Check missing values
-    ## -----------------------------
-    if (any(is.na(time1), is.na(censor1), is.na(time2), is.na(censor2))) {
-      stop("Missing value exists in one of the variables.")
+    if (missing(time) || missing(status) || missing(group) || missing(n_perm)) {
+      stop("All arguments ('time', 'status', 'group', and 'n_perm') must be provided.")
     }
 
     ## -----------------------------
     ## 2. Check lengths
     ## -----------------------------
-    if (!(length(time1) == length(censor1) &&
-          length(time2) == length(censor2))) {
-      stop("Length mismatch: time and censor vectors must have the same length within each group.")
+    if (length(unique(c(length(time), length(status), length(group)))) != 1) {
+      stop("Length mismatch: 'time', 'status', and 'group' must have the same length.")
     }
 
     ## -----------------------------
-    ## 3. Check data types
+    ## 3. Check missing values
     ## -----------------------------
-    if (!is.numeric(time1) || !is.numeric(time2)) {
-      stop("Time variables must be numeric vectors.")
-    }
-
-    if (!is.numeric(censor1) || !is.numeric(censor2)) {
-      stop("Censoring variables must be numeric vectors.")
+    if (any(is.na(c(time, status, group)))) {
+      stop("Missing values found in 'time', 'status', or 'group'.")
     }
 
     ## -----------------------------
-    ## 4. Check censoring values
+    ## 4. Check data types
     ## -----------------------------
-    if (!all(censor1 %in% c(0, 1)) || !all(censor2 %in% c(0, 1))) {
-      stop("Censoring variables must contain only 0 (event) and/or 1 (right-censored) values.")
+    if (!is.numeric(time)) {
+      stop("'time' must be a numeric vector.")
+    }
+
+    if (!is.numeric(status)) {
+      stop("'status' must be a numeric vector.")
+    }
+
+    if (!is.numeric(group)) {
+      stop("'group' must be a numeric vector.")
+    }
+
+
+    ## -----------------------------
+    ## 5. Check censoring values
+    ## -----------------------------
+    if (!all(status %in% c(0, 1))) {
+      stop("'status' must contain only 0 (event) and 1 (right-censored) values.")
     }
 
     ## -----------------------------
-    ## 5. Check n_perm
+    ## 6. Check n_perm
     ## -----------------------------
     if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0) {
-      stop("n_perm must be a positive numeric value.")
+      stop("'n_perm' must be a positive numeric value.")
     }
 
     ## -----------------------------
-    ## 6. Check method (strict)
+    ## 7. Check method
     ## -----------------------------
     valid_methods <- c("roc_length", "ovl", "joint_method")
 
     if (length(method) != 1 || !method %in% valid_methods) {
       stop("Method must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
     }
+
+    ## -----------------------------
+    ## 8. Check "group" values
+    ##    & filter data based on that
+    ## -----------------------------
+    if (!all(group %in% c(1, 2))) {
+      stop("'group' must contain only values 1 and 2.")
+    }
+
+    time1 <- time[group == 1]
+    censor1 <- status[group == 1]
+    time2 <- time[group == 2]
+    censor2 <- status[group == 2]
 
 
     ## -----------------------------
@@ -145,67 +156,77 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
 
   else if (censor_type == "double") {
 
-    time1 <- time[group == 1]
-    censor1 <- status[group == 1]
-    time2 <- time[group == 2]
-    censor2 <- status[group == 2]
-
     ## -----------------------------
-    ## 0. Check required inputs
+    ## 1. Check required inputs
     ## -----------------------------
-    if (missing(time1) || missing(censor1) ||
-        missing(time2) || missing(censor2) || missing(n_perm)) {
-      stop("All arguments (time, status, group, n_perm) must be provided.")
-    }
-
-    ## -----------------------------
-    ## 1. Check missing values
-    ## -----------------------------
-    if (any(is.na(time1), is.na(censor1), is.na(time2), is.na(censor2))) {
-      stop("Missing value exists in one of the variables.")
+    if (missing(time) || missing(status) || missing(group) || missing(n_perm)) {
+      stop("All arguments ('time', 'status', 'group', and 'n_perm') must be provided.")
     }
 
     ## -----------------------------
     ## 2. Check lengths
     ## -----------------------------
-    if (!(length(time1) == length(censor1) &&
-          length(time2) == length(censor2))) {
-      stop("Length mismatch: time and censor vectors must have the same length within each group.")
+    if (length(unique(c(length(time), length(status), length(group)))) != 1) {
+      stop("Length mismatch: 'time', 'status', and 'group' must have the same length.")
     }
 
     ## -----------------------------
-    ## 3. Check data types
+    ## 3. Check missing values
     ## -----------------------------
-    if (!is.numeric(time1) || !is.numeric(time2)) {
-      stop("Time variables must be numeric vectors.")
-    }
-
-    if (!is.numeric(censor1) || !is.numeric(censor2)) {
-      stop("Censoring variables must be numeric vectors.")
+    if (any(is.na(c(time, status, group)))) {
+      stop("Missing values found in 'time', 'status', or 'group'.")
     }
 
     ## -----------------------------
-    ## 4. Check censoring values
+    ## 4. Check data types
     ## -----------------------------
-    if (!all(c(0, 1, -1) %in% censor1) || !all(c(0, 1, -1) %in% censor2)) {
-      stop("Censoring variables must contain all three values: 0 = event, 1 = right-censored, -1 = left-censored.")
+    if (!is.numeric(time)) {
+      stop("'time' must be a numeric vector.")
+    }
+
+    if (!is.numeric(status)) {
+      stop("'status' must be a numeric vector.")
+    }
+
+    if (!is.numeric(group)) {
+      stop("'group' must be a numeric vector.")
     }
 
     ## -----------------------------
-    ## 5. Check n_perm
+    ## 5. Check censoring values
+    ## -----------------------------
+    if (!all(c(0, 1, -1) %in% status)) {
+      stop("'status' must contain all three values: 0 = event, 1 = right-censored, -1 = left-censored.")
+    }
+
+    ## -----------------------------
+    ## 6. Check n_perm
     ## -----------------------------
     if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0) {
-      stop("n_perm must be a positive numeric value.")
+      stop("'n_perm' must be a positive numeric value.")
     }
 
     ## -----------------------------
-    ## 6. Check method (strict)
+    ## 7. Check method
     ## -----------------------------
     valid_methods <- c("roc_length", "ovl", "joint_method")
 
     if (length(method) != 1 || !method %in% valid_methods) {
       stop("Method must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
     }
+
+    ## -----------------------------
+    ## 8. Check "group" values
+    ##    & filter data based on that
+    ## -----------------------------
+    if (!all(group %in% c(1, 2))) {
+      stop("'group' must contain only values 1 and 2.")
+    }
+
+    time1 <- time[group == 1]
+    censor1 <- status[group == 1]
+    time2 <- time[group == 2]
+    censor2 <- status[group == 2]
 
 
     ## -----------------------------
