@@ -1,7 +1,8 @@
 Package: ROCsurvcomp
 Title: ROC-Based Methods for Comparing Right-Censored Survival Data
 Version: 0.1.0
-Authors@R: c(person("Mohammod Mahmudur", "Rahman", email = "mrahman5@kumc.edu", role = c("aut", "cre")), person("Leonidas", "Bantis", role = "aut"))
+Authors@R: c(person("Mohammod Mahmudur", "Rahman", email = "mahmudur.asif13@gmail.com", role = c("aut", "cre")), person("Leonidas", "Bantis", role = "aut"))
+Maintainer: Mohammod Mahmudur Rahman <mahmudur.asif13@gmail.com>
 Description: Implements ROC-length, overlap coefficient (OVL), and joint ROC-OVL methods for comparing right-censored survival distributions under non-proportional hazards. The package provides flexible tools for hypothesis testing in survival analysis.
 License: GPL (>= 3)
 Encoding: UTF-8

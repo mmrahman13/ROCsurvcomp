@@ -13,7 +13,7 @@ Traditional methods such as the log-rank test may lose power when the proportion
   - ROC length-based test
   - Overlap (OVL) measure
   - Joint ROC–OVL testing framework
-- Supports right-censored survival data
+- Supports right, left and doubly-censored survival data
 - Permutation-based inference
 
 
@@ -37,15 +37,13 @@ devtools::install_github("mmrahman13/ROCsurvcomp")
 result <- surv.comp(
   time = survival_time,
   status = censoring_status,
-  group = group,
+  group = group_indicator,
   n_perm = 1000,
   censor_type = "double",
   method = "joint_method")
 
 print(result)
 ```
-
----
 
 ## Methodology
 
@@ -56,30 +54,26 @@ This package implements ROC-based approaches for comparing survival curves:
 - **Joint Test**: Combines ROC length and OVL for improved inference
 
 These methods are especially useful when:
-- Survival curves **cross**
+- Survival curves cross
 - Treatment effects vary over time
 - Proportional hazards assumption is violated
 
+---
 
-## Author
+## Authors
 
 **Mohammod Mahmudur Rahman**<br>
 PhD Student, Department of Biostatistics & Data Science<br>
 University of Kansas Medical Center
 
-**Leonidas Bantis**
-Associate Professor, Department of Biostatistics & Data Science
+**Leonidas Bantis**<br>
+Associate Professor, Department of Biostatistics & Data Science<br>
 University of Kansas Medical Center
 
 
 ## Status
 
 🚧 This package is under active development.
-
-
-## License
-
-To be added.
 
 
 ## Citation
