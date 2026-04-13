@@ -63,8 +63,8 @@ These methods are especially useful when:
 
 ## Author
 
-**Mohammod Mahmudur Rahman**
-PhD Student, Department of Biostatistics & Data Science
+**Mohammod Mahmudur Rahman**<br>
+PhD Student, Department of Biostatistics & Data Science<br>
 University of Kansas Medical Center
 
 **Leonidas Bantis**
