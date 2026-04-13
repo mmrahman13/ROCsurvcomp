@@ -5,8 +5,6 @@
 **ROCsurvcomp** is an R package for ROC-based methods to compare survival curves under **non-proportional hazards (non-PH)**.
 Traditional methods such as the log-rank test may lose power when the proportional hazards assumption is violated. This package provides alternative approaches based on ROC curve characteristics.
 
----
-
 ## Key Features
 
 - ROC-based comparison of survival curves
@@ -18,18 +16,16 @@ Traditional methods such as the log-rank test may lose power when the proportion
 - Supports right-censored survival data
 - Permutation-based inference
 
----
 
 ## Installation
 
-Install the development version from GitHub:
+You can install from GitHub:
 
 ```r
-# install.packages("devtools")  # if not installed
+# install.packages("devtools")    # if not installed
 devtools::install_github("mmrahman13/ROCsurvcomp")
 ```
 
----
 
 ## Usage
 
@@ -38,14 +34,13 @@ devtools::install_github("mmrahman13/ROCsurvcomp")
 ```r
 # Example (replace with your actual data)
 
-result <- survival.test.ROC(
-  time1 = time_group1,
-  censor1 = censor_group1,
-  time2 = time_group2,
-  censor2 = censor_group2,
-  boots = 1000,
-  method = "joint_method"
-)
+result <- surv.comp(
+  time = survival_time,
+  status = censoring_status,
+  group = group,
+  n_perm = 1000,
+  censor_type = "double",
+  method = "joint_method")
 
 print(result)
 ```
@@ -65,27 +60,25 @@ These methods are especially useful when:
 - Treatment effects vary over time
 - Proportional hazards assumption is violated
 
----
 
 ## Author
 
 **Mohammod Mahmudur Rahman**
+
 PhD Student, Biostatistics
+
 University of Kansas Medical Center (KUMC)
 
----
 
 ## Status
 
 🚧 This package is under active development.
 
----
 
 ## License
 
 To be added.
 
----
 
 ## Citation
 
