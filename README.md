@@ -49,9 +49,9 @@ print(result)
 
 This package implements ROC-based approaches for comparing survival curves:
 
-- **ROC Length**: Measures separation between survival distributions
-- **Overlap Coefficient (OVL)**: Quantifies similarity between distributions
-- **Joint Test**: Combines ROC length and OVL for improved inference
+- **ROC Length**: Measures separation between two distributions without relying on any stochastic ordering
+- **Overlap Coefficient (OVL)**: Quantifies the similarity between two distributions using the common area between two probability density functions
+- **Joint Test**: Combines ROC length and OVL-based methods by constructing convex hull of the permuted samples based on their Euclidean distance from the origin
 
 These methods are especially useful when:
 - Proportional hazards assumption is violated
