@@ -100,8 +100,8 @@ roc_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1 = c()
-      impute_sample2 = c()
+      impute_sample1 = numeric(n_last_censor_trt)
+      impute_sample2 = numeric(n_last_censor_ctrl)
 
       ########### Trt arm
       if (n_last_censor_trt == 0) {
@@ -247,8 +247,8 @@ roc_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_boot = c()
-        impute_sample2_boot = c()
+        impute_sample1_boot = numeric(n_last_censor_trt_boot)
+        impute_sample2_boot = numeric(n_last_censor_ctrl_boot)
 
         ########### Trt arm
         if (n_last_censor_trt_boot == 0) {
@@ -431,8 +431,8 @@ ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1 = c()
-      impute_sample2 = c()
+      impute_sample1 = numeric(n_last_censor_trt)
+      impute_sample2 = numeric(n_last_censor_ctrl)
 
       ########### Trt arm
       if (n_last_censor_trt == 0) {
@@ -578,8 +578,8 @@ ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_boot = c()
-        impute_sample2_boot = c()
+        impute_sample1_boot = numeric(n_last_censor_trt_boot)
+        impute_sample2_boot = numeric(n_last_censor_ctrl_boot)
 
         ########### Trt arm
         if (n_last_censor_trt_boot == 0) {
@@ -768,8 +768,8 @@ joint.roc_ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, 
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1 = c()
-      impute_sample2 = c()
+      impute_sample1 = numeric(n_last_censor_trt)
+      impute_sample2 = numeric(n_last_censor_ctrl)
 
       ########### Trt arm
       if (n_last_censor_trt == 0) {
@@ -927,8 +927,8 @@ joint.roc_ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, 
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_boot = c()
-        impute_sample2_boot = c()
+        impute_sample1_boot = numeric(n_last_censor_trt_boot)
+        impute_sample2_boot = numeric(n_last_censor_ctrl_boot)
 
         ########### Trt arm
         if (n_last_censor_trt_boot == 0) {
@@ -1229,10 +1229,10 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1_right = c()
-      impute_sample1_left = c()
-      impute_sample2_right = c()
-      impute_sample2_left = c()
+      impute_sample1_right = numeric(n_last_censor_trt)
+      impute_sample1_left = numeric(n_first_leftcen_trt)
+      impute_sample2_right = numeric(n_last_censor_ctrl)
+      impute_sample2_left = numeric(n_first_leftcen_ctrl)
 
 
       ########### Trt arm ##########
@@ -1421,10 +1421,10 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_right_boot = c()
-        impute_sample1_left_boot = c()
-        impute_sample2_right_boot = c()
-        impute_sample2_left_boot = c()
+        impute_sample1_right_boot = numeric(n_last_censor_trt_boot)
+        impute_sample1_left_boot = numeric(n_first_leftcen_trt_boot)
+        impute_sample2_right_boot = numeric(n_last_censor_ctrl_boot)
+        impute_sample2_left_boot = numeric(n_first_leftcen_ctrl_boot)
 
 
         ########### Trt arm ##########
@@ -1652,10 +1652,10 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1_right = c()
-      impute_sample1_left = c()
-      impute_sample2_right = c()
-      impute_sample2_left = c()
+      impute_sample1_right = numeric(n_last_censor_trt)
+      impute_sample1_left = numeric(n_first_leftcen_trt)
+      impute_sample2_right = numeric(n_last_censor_ctrl)
+      impute_sample2_left = numeric(n_first_leftcen_ctrl)
 
 
       ########### Trt arm ##########
@@ -1843,10 +1843,10 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots) {
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_right_boot = c()
-        impute_sample1_left_boot = c()
-        impute_sample2_right_boot = c()
-        impute_sample2_left_boot = c()
+        impute_sample1_right_boot = numeric(n_last_censor_trt_boot)
+        impute_sample1_left_boot = numeric(n_first_leftcen_trt_boot)
+        impute_sample2_right_boot = numeric(n_last_censor_ctrl_boot)
+        impute_sample2_left_boot = numeric(n_first_leftcen_ctrl_boot)
 
 
         ########### Trt arm ##########
@@ -2082,10 +2082,10 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1_right = c()
-      impute_sample1_left = c()
-      impute_sample2_right = c()
-      impute_sample2_left = c()
+      impute_sample1_right = numeric(n_last_censor_trt)
+      impute_sample1_left = numeric(n_first_leftcen_trt)
+      impute_sample2_right = numeric(n_last_censor_ctrl)
+      impute_sample2_left = numeric(n_first_leftcen_ctrl)
 
 
       ########### Trt arm ##########
@@ -2286,10 +2286,10 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_right_boot = c()
-        impute_sample1_left_boot = c()
-        impute_sample2_right_boot = c()
-        impute_sample2_left_boot = c()
+        impute_sample1_right_boot = numeric(n_last_censor_trt_boot)
+        impute_sample1_left_boot = numeric(n_first_leftcen_trt_boot)
+        impute_sample2_right_boot = numeric(n_last_censor_ctrl_boot)
+        impute_sample2_left_boot = numeric(n_first_leftcen_ctrl_boot)
 
 
         ########### Trt arm ##########
