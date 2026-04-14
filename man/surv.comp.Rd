@@ -2,7 +2,7 @@
 % Please edit documentation in R/surv.comp.R
 \name{surv.comp}
 \alias{surv.comp}
-\title{Compare Two Survival Distributions Using ROC-Based Methods for Right and Doubly Censored Data}
+\title{Compare Two Survival Distributions Using ROC-Based Methods for Right, Left, and Doubly Censored Data}
 \usage{
 surv.comp(
   time,
