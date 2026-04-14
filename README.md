@@ -2,7 +2,7 @@
 
 ## Overview
 
-**ROCsurvcomp** is an R package for ROC-based methods to compare survival curves under non-proportional hazards (non-PH).
+**ROCsurvcomp** is an R package for comparing survival curves under non-proportional hazards (non-PH) using ROC-based methods.
 Traditional log-rank test may lose power when the proportional hazards assumption is violated. Other methods, such as the Flemming-Harrington (FH) family of weighted log-rank tests require prior knowledge of the underlying non-PH patterns, and mis-specified patterns may lead to a substantial loss of statistical power. This package provides alternative approaches for comparing survival curves based on ROC curve, without requiring for any prior knowledge of the underlying non-PH pattern.
 
 ## Key Features
