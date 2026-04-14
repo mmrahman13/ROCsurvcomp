@@ -22,8 +22,8 @@ Traditional methods such as the log-rank test may lose power when the proportion
 You can install from GitHub:
 
 ```r
-# install.packages("devtools")    # if not installed
-devtools::install_github("mmrahman13/ROCsurvcomp")
+# install.packages("remotes")    # if not installed
+remotes::install_github("mmrahman13/ROCsurvcomp")
 ```
 
 
