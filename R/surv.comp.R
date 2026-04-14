@@ -105,7 +105,7 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
     ## 5. Check censoring values
     ## -----------------------------
     if (!all(status %in% c(0, 1))) {
-      stop("'status' must contain only 0 (event) and 1 (right-censored) values.")
+      stop("'status' must contain only 0 (event) and 1 (right-censored) values, when censor_type = 'right'.")
     }
 
     ## -----------------------------
@@ -196,7 +196,7 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
     ## 5. Check censoring values
     ## -----------------------------
     if (!all(c(0, 1, -1) %in% status)) {
-      stop("'status' must contain all three values: 0 = event, 1 = right-censored, -1 = left-censored.")
+      stop("'status' must contain all three values: 0 = event, 1 = right-censored, and -1 = left-censored, when censor_type = 'double'.")
     }
 
     ## -----------------------------
