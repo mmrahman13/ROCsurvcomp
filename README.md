@@ -54,8 +54,8 @@ This package implements ROC-based approaches for comparing survival curves:
 - **Joint Test**: Combines ROC length and OVL-based methods by constructing convex hull of the permuted samples based on their Euclidean distance from the origin
 
 These methods are especially useful when:
-- Proportional hazards assumption is violated
-- Treatment effects are not constant over time
+- The proportional hazards assumption is violated
+- Treatment effects are not constant over time and no prior information about the pattern of effects is available
 - Survival curves cross
 
 
