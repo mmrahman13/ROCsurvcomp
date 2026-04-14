@@ -1,4 +1,4 @@
-#' @title Compare Two Survival Distributions Using ROC-Based Methods for Right and Doubly Censored Data
+#' @title Compare Two Survival Distributions Using ROC-Based Methods for Right, Left, and Doubly Censored Data
 #'
 #' @description Performs a nonparametric comparison of two survival distributions under
 #' right or double censoring using ROC-based metrics, including ROC curve length,
