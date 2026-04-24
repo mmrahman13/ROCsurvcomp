@@ -8,9 +8,9 @@ surv.comp(
   time,
   status,
   group,
+  censor_type,
+  method,
   n_perm,
-  censor_type = c("right", "double"),
-  method = c("roc_length", "ovl", "joint_method"),
   progress = TRUE,
   plot = FALSE
 )
@@ -22,16 +22,15 @@ for all observations.}
 \item{status}{Numeric vector indicating censoring status for each observation:
 \itemize{
 \item For \code{censor_type = "right"}: 0 = event, 1 = right-censored
+\item For \code{censor_type = "left"}: 0 = event, -1 = left-censored
 \item For \code{censor_type = "double"}: 0 = event, 1 = right-censored, -1 = left-censored.
 }}
 
 \item{group}{Numeric vector indicating the group label for each observation.
 Must contain exactly two groups coded as 1 and 2.}
 
-\item{n_perm}{Integer specifying the number of permutation samples used to compute p-values.}
-
-\item{censor_type}{Character string specifying the the type of censoring.
-Must be either \code{"right"} or \code{"double"}.}
+\item{censor_type}{Character string specifying the type of censoring.
+Must be either \code{"right"}, \code{"left"}, or \code{"double"}.}
 
 \item{method}{Character string specifying the test to perform.
 Must be one of:
@@ -40,6 +39,8 @@ Must be one of:
 \item \code{"ovl"}: overlap coefficient-based test
 \item \code{"joint_method"}: joint ROC length and OVL test.
 }}
+
+\item{n_perm}{Integer specifying the number of permutation samples used to compute p-values.}
 
 \item{progress}{Logical value indicating whether to display a progress bar
 during the permutation test. Default is \code{TRUE}. If \code{FALSE},
@@ -68,7 +69,7 @@ This is returned only when \code{method = "joint_method"} and
 }
 \description{
 Performs a nonparametric comparison of two survival distributions under
-right or double censoring using ROC-based metrics, including ROC curve length,
+right, left, or double censoring using ROC-based metrics, including ROC curve length,
 overlap coefficient (OVL), and a joint ROC length–OVL test.
 }
 \details{
@@ -77,7 +78,7 @@ two survival distributions without relying on proportional hazards assumptions.
 The ROC length measures global separation between survival curves, while the
 overlap coefficient (OVL) quantifies distributional similarity. Density estimation is performed using nonparametric kernel methods,
 where the cumulative distribution function (CDF) is estimated
-using the Kaplan–Meier estimator under right censoring or the Turnbull estimator under double censoring.
+using the Kaplan–Meier estimator under right censoring or the Turnbull estimator under left and double censoring.
 
 Input validation is performed to ensure consistency of vector lengths,
 censoring indicators, and method specification.
@@ -86,7 +87,7 @@ censoring indicators, and method specification.
 \dontrun{
 # Example usage
 data("EarlyEffectData")
-surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group, n_perm = 1000,
-          censor_type = "right", method = "roc_length", progress = TRUE)
+surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group,
+          censor_type = "right", method = "roc_length", n_perm = 1000, progress = TRUE, plot = FALSE)
 }
 }

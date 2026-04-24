@@ -9,53 +9,18 @@
 ######################################################################
 
 ######################################################################
-####### Find the number of LEFT censored obs before 1st event time OR 1st right censored
+####### Find the number of LEFT censored obs before 1st event time
 
-Calc_number_LEFTcen_before_1steventORrightcen <- function(cens_stat) {
+Calc_number_LEFTcen_before_1stevent <- function(cens_stat) {
 
   # First occurrence of event (0)
   min_index_event <- which(cens_stat == 0)[1]
 
-  # First occurrence of right censoring (1)
-  min_index_rightcen <- which(cens_stat == 1)[1]
-
-  # Determine earliest of event or right censoring
-  if (length(min_index_rightcen) == 0) {
-    min_index_eventORrightcen <- min_index_event
-  } else {
-    min_index_eventORrightcen <- min(min_index_event, min_index_rightcen)
-  }
-
-  # Number of left-censored (-1) before 1st event time OR 1st right censored
-  n_first_leftcen <- min_index_eventORrightcen - 1
-
+  # Count number of left-censored (-1) before first event
+  n_first_leftcen <- min_index_event - 1
   return(n_first_leftcen)
 }
 
-
-######################################################################
-####### Find the number of RIGHT censored obs after last event time OR last right censored
-Calc_number_RIGHTcen_after_lasteventORleftcen <- function(cens_stat) {
-
-  # Last occurrence of event (0)
-  max_index_event <- tail(which(cens_stat == 0), 1)
-
-  # Last occurrence of left censoring (-1)
-  max_index_leftcen <- tail(which(cens_stat == -1), 1)
-
-  # Determine the last index between event or left censoring
-  if (length(max_index_leftcen) == 0) {
-    max_index_eventORleftcen <- max_index_event
-  } else {
-    max_index_eventORleftcen <- max(max_index_event, max_index_leftcen)
-  }
-
-  # Number of right-censored (1) after after last event time OR last right censored
-  n <- length(cens_stat)
-  n_last_rightcen <- n - max_index_eventORleftcen
-
-  return(n_last_rightcen)
-}
 
 
 
@@ -64,10 +29,10 @@ Calc_number_RIGHTcen_after_lasteventORleftcen <- function(cens_stat) {
 ####### ------------- Only ROC Length ------------- ##########
 ######################################################################
 
-roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE) {
+roc_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE) {
 
-  ##### -------------------------------------------------------------------
-  ##### censoring status (0 = event, 1 = right censored, -1 = left censored)
+  ##### ------------------------------------------------
+  ##### censoring status (0 = event, -1 = left censored)
 
   # double censored data for trt and ctrl
   time_tt = time1
@@ -110,21 +75,17 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
   ################# Censored obs imputation #################
 
   ########### Trt arm
-  # Find the number of RIGHT censored obs after last event time OR last right censored
-  n_last_censor_trt = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_trt);
   # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-  n_first_leftcen_trt = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_trt);
+  n_first_leftcen_trt = Calc_number_LEFTcen_before_1stevent(cens_stat_trt);
 
   ########### Ctrl arm
-  # Find the number of RIGHT censored obs after last event time OR last right censored
-  n_last_censor_ctrl = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_ctrl);
   # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-  n_first_leftcen_ctrl = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_ctrl);
+  n_first_leftcen_ctrl = Calc_number_LEFTcen_before_1stevent(cens_stat_ctrl);
 
 
   #### Check if both arm's 1st & last obs are event
 
-  if (n_last_censor_trt == 0 && n_first_leftcen_trt  == 0 && n_last_censor_ctrl == 0 && n_first_leftcen_ctrl == 0) {
+  if (n_first_leftcen_trt  == 0 && n_first_leftcen_ctrl == 0) {
 
     time_trt_box_imput = time_trt_box
     time_ctrl_box_imput = time_ctrl_box
@@ -151,32 +112,11 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1_right = numeric(n_last_censor_trt)
       impute_sample1_left = numeric(n_first_leftcen_trt)
-      impute_sample2_right = numeric(n_last_censor_ctrl)
       impute_sample2_left = numeric(n_first_leftcen_ctrl)
 
 
       ########### Trt arm ##########
-      ####### Censor in RIGHT tail
-      if (n_last_censor_trt == 0) {
-        time_trt_box_imput = time_trt_box_imput
-        cens_stat_trt_imput = cens_stat_trt_imput
-      } else {
-        # Impute the censored obs after last event time/left censored
-        for (i_t in 1:n_last_censor_trt) {
-          sample1_R = time_trt_box[n_trt - n_last_censor_trt + i_t]   # Initial sample
-          while (sample1_R <= time_trt_box[n_trt - n_last_censor_trt + i_t]) {
-            sample1_R = rnorm(1, mean = mu_trt_hat, sd = sd_trt_hat)
-          }
-          impute_sample1_right[i_t] = sample1_R
-        }
-        # Substitute the obs in the main data
-        time_trt_box_imput[(n_trt - n_last_censor_trt + 1):n_trt] = impute_sample1_right
-        cens_stat_trt_imput[(n_trt - n_last_censor_trt + 1):n_trt] = 0
-      }
-
-
       ####### Censor in LEFT tail
       if (n_first_leftcen_trt == 0) {
         time_trt_box_imput = time_trt_box_imput
@@ -198,26 +138,6 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
 
 
       ########### Ctrl arm ##########
-      ####### Censor in RIGHT tail
-      if (n_last_censor_ctrl == 0) {
-        time_ctrl_box_imput = time_ctrl_box_imput
-        cens_stat_ctrl_imput = cens_stat_ctrl_imput
-      } else {
-        # Impute the censored obs after last event time/left censored
-        for (i_c in 1:n_last_censor_ctrl) {
-          sample2_R = time_ctrl_box[n_ctrl - n_last_censor_ctrl + i_c]   # Initial sample
-          while (sample2_R <= time_ctrl_box[n_ctrl - n_last_censor_ctrl + i_c]) {
-            sample2_R = rnorm(1, mean = mu_ctrl_hat, sd = sd_ctrl_hat)
-          }
-          impute_sample2_right[i_c] = sample2_R
-        }
-
-        # Substitute the obs in the main data
-        time_ctrl_box_imput[(n_ctrl - n_last_censor_ctrl + 1):n_ctrl] = impute_sample2_right
-        cens_stat_ctrl_imput[(n_ctrl - n_last_censor_ctrl + 1):n_ctrl] = 0
-      }
-
-
       ####### Censor in LEFT tail
       if (n_first_leftcen_ctrl == 0) {
         time_ctrl_box_imput = time_ctrl_box_imput
@@ -332,20 +252,16 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
     ################# Censored obs imputation #################
 
     ########### Trt arm
-    # Find the number of RIGHT censored obs after last event time OR last right censored
-    n_last_censor_trt_boot = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_trt_boot)
     # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-    n_first_leftcen_trt_boot = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_trt_boot)
+    n_first_leftcen_trt_boot = Calc_number_LEFTcen_before_1stevent(cens_stat_trt_boot)
 
     ########### Ctrl arm
-    # Find the number of RIGHT censored obs after last event time OR last right censored
-    n_last_censor_ctrl_boot = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_ctrl_boot)
     # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-    n_first_leftcen_ctrl_boot = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_ctrl_boot)
+    n_first_leftcen_ctrl_boot = Calc_number_LEFTcen_before_1stevent(cens_stat_ctrl_boot)
 
 
     #### Check if both arm's last obs is event
-    if (n_last_censor_trt_boot == 0 && n_first_leftcen_trt_boot == 0 && n_last_censor_ctrl_boot == 0 && n_first_leftcen_ctrl_boot == 0) {
+    if (n_first_leftcen_trt_boot == 0 && n_first_leftcen_ctrl_boot == 0) {
 
       time_trt_box_imput_boot = time_trt_box_boot
       time_ctrl_box_imput_boot = time_ctrl_box_boot
@@ -372,34 +288,11 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_right_boot = numeric(n_last_censor_trt_boot)
         impute_sample1_left_boot = numeric(n_first_leftcen_trt_boot)
-        impute_sample2_right_boot = numeric(n_last_censor_ctrl_boot)
         impute_sample2_left_boot = numeric(n_first_leftcen_ctrl_boot)
 
 
         ########### Trt arm ##########
-
-        ####### Censor in RIGHT tail
-        if (n_last_censor_trt_boot == 0) {
-          time_trt_box_imput_boot = time_trt_box_imput_boot
-          cens_stat_trt_imput_boot = cens_stat_trt_imput_boot
-        } else {
-          # Impute the censored obs after last event time/left censored
-          for (i_t_boot in 1:n_last_censor_trt_boot) {
-            sample1_R_boot = time_trt_box_boot[n_trt - n_last_censor_trt_boot + i_t_boot]   # Initial sample
-            while (sample1_R_boot <= time_trt_box_boot[n_trt - n_last_censor_trt_boot + i_t_boot]) {
-              sample1_R_boot = rnorm(1, mean = mu_trt_hat_boot, sd = sd_trt_hat_boot)
-            }
-            impute_sample1_right_boot[i_t_boot] = sample1_R_boot
-          }
-          # Substitute the obs in the main data
-          time_trt_box_imput_boot[(n_trt - n_last_censor_trt_boot + 1):n_trt] = impute_sample1_right_boot
-          cens_stat_trt_imput_boot[(n_trt - n_last_censor_trt_boot + 1):n_trt] = 0
-        }
-
-
-
         ####### Censor in LEFT tail
         if (n_first_leftcen_trt_boot == 0) {
           time_trt_box_imput_boot = time_trt_box_imput_boot
@@ -421,25 +314,6 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
 
 
         ########### Ctrl arm ##########
-        ####### Censor in RIGHT tail
-        if (n_last_censor_ctrl_boot == 0) {
-          time_ctrl_box_imput_boot = time_ctrl_box_imput_boot
-          cens_stat_ctrl_imput_boot = cens_stat_ctrl_imput_boot
-        } else {
-          # Impute the censored obs after last event time/left censored
-          for (i_c_boot in 1:n_last_censor_ctrl_boot) {
-            sample2_R_boot = time_ctrl_box_boot[n_ctrl - n_last_censor_ctrl_boot + i_c_boot]   # Initial sample
-            while (sample2_R_boot <= time_ctrl_box_boot[n_ctrl - n_last_censor_ctrl_boot + i_c_boot]) {
-              sample2_R_boot = rnorm(1, mean = mu_ctrl_hat_boot, sd = sd_ctrl_hat_boot)
-            }
-            impute_sample2_right_boot[i_c_boot] = sample2_R_boot
-          }
-          # Substitute the obs in the main data
-          time_ctrl_box_imput_boot[(n_ctrl - n_last_censor_ctrl_boot + 1):n_ctrl] = impute_sample2_right_boot
-          cens_stat_ctrl_imput_boot[(n_ctrl - n_last_censor_ctrl_boot + 1):n_ctrl] = 0
-        }
-
-
         ####### Censor in LEFT tail
         if (n_first_leftcen_ctrl_boot == 0) {
           time_ctrl_box_imput_boot = time_ctrl_box_imput_boot
@@ -510,10 +384,10 @@ roc_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
 ####### ------------ Only OVL ------------- #######
 ######################################################################
 
-ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE) {
+ovl_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE) {
 
-  ##### -------------------------------------------------------------------
-  ##### censoring status (0 = event, 1 = right censored, -1 = left censored)
+  ##### ------------------------------------------------
+  ##### censoring status (0 = event, -1 = left censored)
 
   # double censored data for trt and ctrl
   time_tt = time1
@@ -556,21 +430,17 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
   ################# Censored obs imputation #################
 
   ########### Trt arm
-  # Find the number of RIGHT censored obs after last event time OR last right censored
-  n_last_censor_trt = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_trt);
   # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-  n_first_leftcen_trt = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_trt);
+  n_first_leftcen_trt = Calc_number_LEFTcen_before_1stevent(cens_stat_trt);
 
   ########### Ctrl arm
-  # Find the number of RIGHT censored obs after last event time OR last right censored
-  n_last_censor_ctrl = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_ctrl);
   # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-  n_first_leftcen_ctrl = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_ctrl);
+  n_first_leftcen_ctrl = Calc_number_LEFTcen_before_1stevent(cens_stat_ctrl);
 
 
   #### Check if both arm's last obs is event
 
-  if (n_last_censor_trt == 0 && n_first_leftcen_trt  == 0 && n_last_censor_ctrl == 0 && n_first_leftcen_ctrl == 0) {
+  if (n_first_leftcen_trt  == 0 && n_first_leftcen_ctrl == 0) {
 
     time_trt_box_imput = time_trt_box
     time_ctrl_box_imput = time_ctrl_box
@@ -597,32 +467,11 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1_right = numeric(n_last_censor_trt)
       impute_sample1_left = numeric(n_first_leftcen_trt)
-      impute_sample2_right = numeric(n_last_censor_ctrl)
       impute_sample2_left = numeric(n_first_leftcen_ctrl)
 
 
       ########### Trt arm ##########
-      ####### Censor in RIGHT tail
-      if (n_last_censor_trt == 0) {
-        time_trt_box_imput = time_trt_box_imput
-        cens_stat_trt_imput = cens_stat_trt_imput
-      } else {
-        # Impute the censored obs after last event time/left censored
-        for (i_t in 1:n_last_censor_trt) {
-          sample1_R = time_trt_box[n_trt - n_last_censor_trt + i_t]   # Initial sample
-          while (sample1_R <= time_trt_box[n_trt - n_last_censor_trt + i_t]) {
-            sample1_R = rnorm(1, mean = mu_trt_hat, sd = sd_trt_hat)
-          }
-          impute_sample1_right[i_t] = sample1_R
-        }
-        # Substitute the obs in the main data
-        time_trt_box_imput[(n_trt - n_last_censor_trt + 1):n_trt] = impute_sample1_right
-        cens_stat_trt_imput[(n_trt - n_last_censor_trt + 1):n_trt] = 0
-      }
-
-
       ####### Censor in LEFT tail
       if (n_first_leftcen_trt == 0) {
         time_trt_box_imput = time_trt_box_imput
@@ -644,26 +493,6 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
 
 
       ########### Ctrl arm ##########
-      ####### Censor in RIGHT tail
-      if (n_last_censor_ctrl == 0) {
-        time_ctrl_box_imput = time_ctrl_box_imput
-        cens_stat_ctrl_imput = cens_stat_ctrl_imput
-      } else {
-        # Impute the censored obs after last event time/left censored
-        for (i_c in 1:n_last_censor_ctrl) {
-          sample2_R = time_ctrl_box[n_ctrl - n_last_censor_ctrl + i_c]   # Initial sample
-          while (sample2_R <= time_ctrl_box[n_ctrl - n_last_censor_ctrl + i_c]) {
-            sample2_R = rnorm(1, mean = mu_ctrl_hat, sd = sd_ctrl_hat)
-          }
-          impute_sample2_right[i_c] = sample2_R
-        }
-
-        # Substitute the obs in the main data
-        time_ctrl_box_imput[(n_ctrl - n_last_censor_ctrl + 1):n_ctrl] = impute_sample2_right
-        cens_stat_ctrl_imput[(n_ctrl - n_last_censor_ctrl + 1):n_ctrl] = 0
-      }
-
-
       ####### Censor in LEFT tail
       if (n_first_leftcen_ctrl == 0) {
         time_ctrl_box_imput = time_ctrl_box_imput
@@ -777,20 +606,16 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
     ################# Censored obs imputation #################
 
     ########### Trt arm
-    # Find the number of RIGHT censored obs after last event time OR last right censored
-    n_last_censor_trt_boot = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_trt_boot)
     # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-    n_first_leftcen_trt_boot = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_trt_boot)
+    n_first_leftcen_trt_boot = Calc_number_LEFTcen_before_1stevent(cens_stat_trt_boot)
 
     ########### Ctrl arm
-    # Find the number of RIGHT censored obs after last event time OR last right censored
-    n_last_censor_ctrl_boot = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_ctrl_boot)
     # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-    n_first_leftcen_ctrl_boot = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_ctrl_boot)
+    n_first_leftcen_ctrl_boot = Calc_number_LEFTcen_before_1stevent(cens_stat_ctrl_boot)
 
 
     #### Check if both arm's last obs is event
-    if (n_last_censor_trt_boot == 0 && n_first_leftcen_trt_boot == 0 && n_last_censor_ctrl_boot == 0 && n_first_leftcen_ctrl_boot == 0) {
+    if (n_first_leftcen_trt_boot == 0 && n_first_leftcen_ctrl_boot == 0) {
 
       time_trt_box_imput_boot = time_trt_box_boot
       time_ctrl_box_imput_boot = time_ctrl_box_boot
@@ -817,34 +642,11 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_right_boot = numeric(n_last_censor_trt_boot)
         impute_sample1_left_boot = numeric(n_first_leftcen_trt_boot)
-        impute_sample2_right_boot = numeric(n_last_censor_ctrl_boot)
         impute_sample2_left_boot = numeric(n_first_leftcen_ctrl_boot)
 
 
         ########### Trt arm ##########
-
-        ####### Censor in RIGHT tail
-        if (n_last_censor_trt_boot == 0) {
-          time_trt_box_imput_boot = time_trt_box_imput_boot
-          cens_stat_trt_imput_boot = cens_stat_trt_imput_boot
-        } else {
-          # Impute the censored obs after last event time/left censored
-          for (i_t_boot in 1:n_last_censor_trt_boot) {
-            sample1_R_boot = time_trt_box_boot[n_trt - n_last_censor_trt_boot + i_t_boot]   # Initial sample
-            while (sample1_R_boot <= time_trt_box_boot[n_trt - n_last_censor_trt_boot + i_t_boot]) {
-              sample1_R_boot = rnorm(1, mean = mu_trt_hat_boot, sd = sd_trt_hat_boot)
-            }
-            impute_sample1_right_boot[i_t_boot] = sample1_R_boot
-          }
-          # Substitute the obs in the main data
-          time_trt_box_imput_boot[(n_trt - n_last_censor_trt_boot + 1):n_trt] = impute_sample1_right_boot
-          cens_stat_trt_imput_boot[(n_trt - n_last_censor_trt_boot + 1):n_trt] = 0
-        }
-
-
-
         ####### Censor in LEFT tail
         if (n_first_leftcen_trt_boot == 0) {
           time_trt_box_imput_boot = time_trt_box_imput_boot
@@ -866,25 +668,6 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
 
 
         ########### Ctrl arm ##########
-        ####### Censor in RIGHT tail
-        if (n_last_censor_ctrl_boot == 0) {
-          time_ctrl_box_imput_boot = time_ctrl_box_imput_boot
-          cens_stat_ctrl_imput_boot = cens_stat_ctrl_imput_boot
-        } else {
-          # Impute the censored obs after last event time/left censored
-          for (i_c_boot in 1:n_last_censor_ctrl_boot) {
-            sample2_R_boot = time_ctrl_box_boot[n_ctrl - n_last_censor_ctrl_boot + i_c_boot]   # Initial sample
-            while (sample2_R_boot <= time_ctrl_box_boot[n_ctrl - n_last_censor_ctrl_boot + i_c_boot]) {
-              sample2_R_boot = rnorm(1, mean = mu_ctrl_hat_boot, sd = sd_ctrl_hat_boot)
-            }
-            impute_sample2_right_boot[i_c_boot] = sample2_R_boot
-          }
-          # Substitute the obs in the main data
-          time_ctrl_box_imput_boot[(n_ctrl - n_last_censor_ctrl_boot + 1):n_ctrl] = impute_sample2_right_boot
-          cens_stat_ctrl_imput_boot[(n_ctrl - n_last_censor_ctrl_boot + 1):n_ctrl] = 0
-        }
-
-
         ####### Censor in LEFT tail
         if (n_first_leftcen_ctrl_boot == 0) {
           time_ctrl_box_imput_boot = time_ctrl_box_imput_boot
@@ -957,10 +740,10 @@ ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pr
 #### ------- JOINT ROC Length & OVL -------- #######
 ######################################################################
 
-joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE, plot = FALSE) {
+joint.roc_ovl_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE, plot = FALSE) {
 
-  ##### -------------------------------------------------------------------
-  ##### censoring status (0 = event, 1 = right censored, -1 = left censored)
+  ##### ------------------------------------------------
+  ##### censoring status (0 = event, -1 = left censored)
 
   # double censored data for trt and ctrl
   time_tt = time1
@@ -1003,21 +786,17 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
   ################# Censored obs imputation #################
 
   ########### Trt arm
-  # Find the number of RIGHT censored obs after last event time OR last right censored
-  n_last_censor_trt = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_trt);
   # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-  n_first_leftcen_trt = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_trt);
+  n_first_leftcen_trt = Calc_number_LEFTcen_before_1stevent(cens_stat_trt);
 
   ########### Ctrl arm
-  # Find the number of RIGHT censored obs after last event time OR last right censored
-  n_last_censor_ctrl = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_ctrl);
   # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-  n_first_leftcen_ctrl = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_ctrl);
+  n_first_leftcen_ctrl = Calc_number_LEFTcen_before_1stevent(cens_stat_ctrl);
 
 
   #### Check if both arm's last obs is event
 
-  if (n_last_censor_trt == 0 && n_first_leftcen_trt  == 0 && n_last_censor_ctrl == 0 && n_first_leftcen_ctrl == 0) {
+  if (n_first_leftcen_trt  == 0 && n_first_leftcen_ctrl == 0) {
 
     time_trt_box_imput = time_trt_box
     time_ctrl_box_imput = time_ctrl_box
@@ -1050,32 +829,11 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
       cens_stat_trt_imput = cens_stat_trt
       cens_stat_ctrl_imput = cens_stat_ctrl
 
-      impute_sample1_right = numeric(n_last_censor_trt)
       impute_sample1_left = numeric(n_first_leftcen_trt)
-      impute_sample2_right = numeric(n_last_censor_ctrl)
       impute_sample2_left = numeric(n_first_leftcen_ctrl)
 
 
       ########### Trt arm ##########
-      ####### Censor in RIGHT tail
-      if (n_last_censor_trt == 0) {
-        time_trt_box_imput = time_trt_box_imput
-        cens_stat_trt_imput = cens_stat_trt_imput
-      } else {
-        # Impute the censored obs after last event time/left censored
-        for (i_t in 1:n_last_censor_trt) {
-          sample1_R = time_trt_box[n_trt - n_last_censor_trt + i_t]   # Initial sample
-          while (sample1_R <= time_trt_box[n_trt - n_last_censor_trt + i_t]) {
-            sample1_R = rnorm(1, mean = mu_trt_hat, sd = sd_trt_hat)
-          }
-          impute_sample1_right[i_t] = sample1_R
-        }
-        # Substitute the obs in the main data
-        time_trt_box_imput[(n_trt - n_last_censor_trt + 1):n_trt] = impute_sample1_right
-        cens_stat_trt_imput[(n_trt - n_last_censor_trt + 1):n_trt] = 0
-      }
-
-
       ####### Censor in LEFT tail
       if (n_first_leftcen_trt == 0) {
         time_trt_box_imput = time_trt_box_imput
@@ -1097,26 +855,6 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
 
 
       ########### Ctrl arm ##########
-      ####### Censor in RIGHT tail
-      if (n_last_censor_ctrl == 0) {
-        time_ctrl_box_imput = time_ctrl_box_imput
-        cens_stat_ctrl_imput = cens_stat_ctrl_imput
-      } else {
-        # Impute the censored obs after last event time/left censored
-        for (i_c in 1:n_last_censor_ctrl) {
-          sample2_R = time_ctrl_box[n_ctrl - n_last_censor_ctrl + i_c]   # Initial sample
-          while (sample2_R <= time_ctrl_box[n_ctrl - n_last_censor_ctrl + i_c]) {
-            sample2_R = rnorm(1, mean = mu_ctrl_hat, sd = sd_ctrl_hat)
-          }
-          impute_sample2_right[i_c] = sample2_R
-        }
-
-        # Substitute the obs in the main data
-        time_ctrl_box_imput[(n_ctrl - n_last_censor_ctrl + 1):n_ctrl] = impute_sample2_right
-        cens_stat_ctrl_imput[(n_ctrl - n_last_censor_ctrl + 1):n_ctrl] = 0
-      }
-
-
       ####### Censor in LEFT tail
       if (n_first_leftcen_ctrl == 0) {
         time_ctrl_box_imput = time_ctrl_box_imput
@@ -1237,20 +975,16 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
     ################# Censored obs imputation #################
 
     ########### Trt arm
-    # Find the number of RIGHT censored obs after last event time OR last right censored
-    n_last_censor_trt_boot = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_trt_boot)
     # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-    n_first_leftcen_trt_boot = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_trt_boot)
+    n_first_leftcen_trt_boot = Calc_number_LEFTcen_before_1stevent(cens_stat_trt_boot)
 
     ########### Ctrl arm
-    # Find the number of RIGHT censored obs after last event time OR last right censored
-    n_last_censor_ctrl_boot = Calc_number_RIGHTcen_after_lasteventORleftcen(cens_stat_ctrl_boot)
     # Find the number of LEFT censored obs before 1st event time OR 1st right censored
-    n_first_leftcen_ctrl_boot = Calc_number_LEFTcen_before_1steventORrightcen(cens_stat_ctrl_boot)
+    n_first_leftcen_ctrl_boot = Calc_number_LEFTcen_before_1stevent(cens_stat_ctrl_boot)
 
 
     #### Check if both arm's last obs is event
-    if (n_last_censor_trt_boot == 0 && n_first_leftcen_trt_boot == 0 && n_last_censor_ctrl_boot == 0 && n_first_leftcen_ctrl_boot == 0) {
+    if (n_first_leftcen_trt_boot == 0 && n_first_leftcen_ctrl_boot == 0) {
 
       time_trt_box_imput_boot = time_trt_box_boot
       time_ctrl_box_imput_boot = time_ctrl_box_boot
@@ -1283,34 +1017,11 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
         cens_stat_trt_imput_boot = cens_stat_trt_boot
         cens_stat_ctrl_imput_boot = cens_stat_ctrl_boot
 
-        impute_sample1_right_boot = numeric(n_last_censor_trt_boot)
         impute_sample1_left_boot = numeric(n_first_leftcen_trt_boot)
-        impute_sample2_right_boot = numeric(n_last_censor_ctrl_boot)
         impute_sample2_left_boot = numeric(n_first_leftcen_ctrl_boot)
 
 
         ########### Trt arm ##########
-
-        ####### Censor in RIGHT tail
-        if (n_last_censor_trt_boot == 0) {
-          time_trt_box_imput_boot = time_trt_box_imput_boot
-          cens_stat_trt_imput_boot = cens_stat_trt_imput_boot
-        } else {
-          # Impute the censored obs after last event time/left censored
-          for (i_t_boot in 1:n_last_censor_trt_boot) {
-            sample1_R_boot = time_trt_box_boot[n_trt - n_last_censor_trt_boot + i_t_boot]   # Initial sample
-            while (sample1_R_boot <= time_trt_box_boot[n_trt - n_last_censor_trt_boot + i_t_boot]) {
-              sample1_R_boot = rnorm(1, mean = mu_trt_hat_boot, sd = sd_trt_hat_boot)
-            }
-            impute_sample1_right_boot[i_t_boot] = sample1_R_boot
-          }
-          # Substitute the obs in the main data
-          time_trt_box_imput_boot[(n_trt - n_last_censor_trt_boot + 1):n_trt] = impute_sample1_right_boot
-          cens_stat_trt_imput_boot[(n_trt - n_last_censor_trt_boot + 1):n_trt] = 0
-        }
-
-
-
         ####### Censor in LEFT tail
         if (n_first_leftcen_trt_boot == 0) {
           time_trt_box_imput_boot = time_trt_box_imput_boot
@@ -1332,25 +1043,6 @@ joint.roc_ovl_DoubleCenSurvival_test <- function(time1, censor1, time2, censor2,
 
 
         ########### Ctrl arm ##########
-        ####### Censor in RIGHT tail
-        if (n_last_censor_ctrl_boot == 0) {
-          time_ctrl_box_imput_boot = time_ctrl_box_imput_boot
-          cens_stat_ctrl_imput_boot = cens_stat_ctrl_imput_boot
-        } else {
-          # Impute the censored obs after last event time/left censored
-          for (i_c_boot in 1:n_last_censor_ctrl_boot) {
-            sample2_R_boot = time_ctrl_box_boot[n_ctrl - n_last_censor_ctrl_boot + i_c_boot]   # Initial sample
-            while (sample2_R_boot <= time_ctrl_box_boot[n_ctrl - n_last_censor_ctrl_boot + i_c_boot]) {
-              sample2_R_boot = rnorm(1, mean = mu_ctrl_hat_boot, sd = sd_ctrl_hat_boot)
-            }
-            impute_sample2_right_boot[i_c_boot] = sample2_R_boot
-          }
-          # Substitute the obs in the main data
-          time_ctrl_box_imput_boot[(n_ctrl - n_last_censor_ctrl_boot + 1):n_ctrl] = impute_sample2_right_boot
-          cens_stat_ctrl_imput_boot[(n_ctrl - n_last_censor_ctrl_boot + 1):n_ctrl] = 0
-        }
-
-
         ####### Censor in LEFT tail
         if (n_first_leftcen_ctrl_boot == 0) {
           time_ctrl_box_imput_boot = time_ctrl_box_imput_boot

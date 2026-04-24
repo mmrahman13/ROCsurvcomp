@@ -12,22 +12,16 @@
 
 roc_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE) {
 
-  # Computes p-values for (i) ROC length, (ii) overlap coeff, and (iii) joint test
-  #
-  # Inputs:
-  #   data       : A dataset with 2 columns,
-  #                1st: time-to-event,
-  #                2nd: censoring status (0 = event, 1 = censored),
-  #   boots      : number of permutations
-  #
+  ##### ------------------------------------------------
+  ##### censoring status (0 = event, 1 = right censored)
 
   # Right censored data for trt and ctrl
   time_tt = time1
-  cens_stat_t = censor1    # Censoring indicator (0 means death, 1 means censored)
+  cens_stat_t = censor1
   n_trt = length(time_tt)
 
   time_cc = time2
-  cens_stat_c = censor2    # Censoring indicator (0 means death, 1 means censored)
+  cens_stat_c = censor2
   n_ctrl = length(time_cc)
 
   # Log transform
@@ -373,22 +367,16 @@ roc_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pro
 
 ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE) {
 
-  # Computes p-values for (i) ROC length, (ii) overlap coeff, and (iii) joint test
-  #
-  # Inputs:
-  #   data       : A dataset with 2 columns,
-  #                1st: time-to-event,
-  #                2nd: censoring status (0 = event, 1 = censored),
-  #   boots      : number of permutations
-  #
+  ##### ------------------------------------------------
+  ##### censoring status (0 = event, 1 = right censored)
 
   # Right censored data for trt and ctrl
   time_tt = time1
-  cens_stat_t = censor1    # Censoring indicator (0 means death, 1 means censored)
+  cens_stat_t = censor1
   n_trt = length(time_tt)
 
   time_cc = time2
-  cens_stat_c = censor2    # Censoring indicator (0 means death, 1 means censored)
+  cens_stat_c = censor2
   n_ctrl = length(time_cc)
 
   # Log transform
@@ -734,22 +722,16 @@ ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pro
 
 joint.roc_ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, progress = TRUE, plot = FALSE) {
 
-  # Computes p-values for (i) ROC length, (ii) overlap coeff, and (iii) joint test
-  #
-  # Inputs:
-  #   data       : A dataset with 2 columns,
-  #                1st: time-to-event,
-  #                2nd: censoring status (0 = event, 1 = censored),
-  #   boots      : number of permutations
-  #
+  ##### ------------------------------------------------
+  ##### censoring status (0 = event, 1 = right censored)
 
   # Right censored data for trt and ctrl
   time_tt = time1
-  cens_stat_t = censor1    # Censoring indicator (0 means death, 1 means censored)
+  cens_stat_t = censor1
   n_trt = length(time_tt)
 
   time_cc = time2
-  cens_stat_c = censor2    # Censoring indicator (0 means death, 1 means censored)
+  cens_stat_c = censor2
   n_ctrl = length(time_cc)
 
   # Log transform

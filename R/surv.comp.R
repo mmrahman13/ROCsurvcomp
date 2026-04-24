@@ -1,7 +1,7 @@
 #' @title Compare Two Survival Distributions Using ROC-Based Methods for Right, Left, and Doubly Censored Data
 #'
 #' @description Performs a nonparametric comparison of two survival distributions under
-#' right or double censoring using ROC-based metrics, including ROC curve length,
+#' right, left, or double censoring using ROC-based metrics, including ROC curve length,
 #' overlap coefficient (OVL), and a joint ROC length–OVL test.
 #'
 #' @importFrom stats dnorm integrate median optim pnorm qnorm rnorm sd
@@ -12,13 +12,13 @@
 #' @param status Numeric vector indicating censoring status for each observation:
 #'   \itemize{
 #'     \item For \code{censor_type = "right"}: 0 = event, 1 = right-censored
+#'     \item For \code{censor_type = "left"}: 0 = event, -1 = left-censored
 #'     \item For \code{censor_type = "double"}: 0 = event, 1 = right-censored, -1 = left-censored.
 #'   }
 #' @param group Numeric vector indicating the group label for each observation.
 #'   Must contain exactly two groups coded as 1 and 2.
-#' @param n_perm Integer specifying the number of permutation samples used to compute p-values.
-#' @param censor_type Character string specifying the the type of censoring.
-#'   Must be either \code{"right"} or \code{"double"}.
+#' @param censor_type Character string specifying the type of censoring.
+#'   Must be either \code{"right"}, \code{"left"}, or \code{"double"}.
 #' @param method Character string specifying the test to perform.
 #'   Must be one of:
 #'   \itemize{
@@ -26,6 +26,7 @@
 #'     \item \code{"ovl"}: overlap coefficient-based test
 #'     \item \code{"joint_method"}: joint ROC length and OVL test.
 #'   }
+#' @param n_perm Integer specifying the number of permutation samples used to compute p-values.
 #' @param progress Logical value indicating whether to display a progress bar
 #'   during the permutation test. Default is \code{TRUE}. If \code{FALSE},
 #'   the computation runs silently without showing progress updates.
@@ -55,7 +56,7 @@
 #' The ROC length measures global separation between survival curves, while the
 #' overlap coefficient (OVL) quantifies distributional similarity. Density estimation is performed using nonparametric kernel methods,
 #' where the cumulative distribution function (CDF) is estimated
-#' using the Kaplan–Meier estimator under right censoring or the Turnbull estimator under double censoring.
+#' using the Kaplan–Meier estimator under right censoring or the Turnbull estimator under left and double censoring.
 #'
 #' Input validation is performed to ensure consistency of vector lengths,
 #' censoring indicators, and method specification.
@@ -64,39 +65,40 @@
 #' \dontrun{
 #' # Example usage
 #' data("EarlyEffectData")
-#' surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group, n_perm = 1000,
-#'           censor_type = "right", method = "roc_length", progress = TRUE)
+#' surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group,
+#'           censor_type = "right", method = "roc_length", n_perm = 1000, progress = TRUE, plot = FALSE)
 #' }
 #' @export
-surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "double"),
-                      method = c("roc_length", "ovl", "joint_method"),
-                      progress = TRUE, plot = FALSE) {
+surv.comp <- function(time, status, group, censor_type, method,
+                      n_perm, progress = TRUE, plot = FALSE) {
+
+  ## -----------------------------
+  ## Check required inputs
+  ## -----------------------------
+  if (missing(time) || missing(status) || missing(group) || missing(n_perm) ||
+      missing(censor_type) || missing(method)) {
+    stop("All arguments ('time', 'status', 'group', 'n_perm', 'censor_type', and 'method') must be provided.")
+  }
+
 
   if (censor_type == "right") {
 
     ## -----------------------------
-    ## 1. Check required inputs
-    ## -----------------------------
-    if (missing(time) || missing(status) || missing(group) || missing(n_perm)) {
-      stop("All arguments ('time', 'status', 'group', and 'n_perm') must be provided.")
-    }
-
-    ## -----------------------------
-    ## 2. Check lengths
+    ## 1. Check lengths
     ## -----------------------------
     if (length(unique(c(length(time), length(status), length(group)))) != 1) {
       stop("Length mismatch: 'time', 'status', and 'group' must have the same length.")
     }
 
     ## -----------------------------
-    ## 3. Check missing values
+    ## 2. Check missing values
     ## -----------------------------
     if (any(is.na(c(time, status, group)))) {
-      stop("Missing values found in 'time', 'status', or 'group'.")
+      stop("Missing values found in at least one of 'time', 'status', or 'group'.")
     }
 
     ## -----------------------------
-    ## 4. Check data types
+    ## 3. Check data types
     ## -----------------------------
     if (!is.numeric(time)) {
       stop("'time' must be a numeric vector.")
@@ -112,45 +114,45 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
 
 
     ## -----------------------------
-    ## 5. Check censoring values
+    ## 4. Check censoring values
     ## -----------------------------
     if (!all(status %in% c(0, 1))) {
       stop("'status' must contain only 0 (event) and 1 (right-censored) values, when censor_type = 'right'.")
     }
 
     ## -----------------------------
-    ## 6. Check n_perm
+    ## 5. Check n_perm
     ## -----------------------------
-    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0) {
-      stop("'n_perm' must be a positive numeric value.")
+    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0 || n_perm %% 1 != 0) {
+      stop("'n_perm' must be a positive integer.")
     }
 
     ## -----------------------------
-    ## 7. Check method
+    ## 6. Check method
     ## -----------------------------
     valid_methods <- c("roc_length", "ovl", "joint_method")
 
     if (length(method) != 1 || !method %in% valid_methods) {
-      stop("Method must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
+      stop("'method' must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
     }
 
     ## -----------------------------
-    ## 8. Check "group" values
+    ## 7. Check "group" values
     ##    & filter data based on that
     ## -----------------------------
-    if (!all(group %in% c(1, 2))) {
-      stop("'group' must contain only values 1 and 2.")
+    if (!all(group %in% c(1, 2)) || !all(c(1, 2) %in% group)) {
+      stop("'group' must contain exactly two groups coded as 1 and 2.")
     }
 
     ## -----------------------------
-    ## 9. Check progress bar
+    ## 8. Check progress bar
     ## -----------------------------
     if (!is.logical(progress) || length(progress) != 1) {
       stop("'progress' must be either TRUE or FALSE.")
     }
 
     ## -----------------------------
-    ## 10. Check plot argument
+    ## 9. Check plot argument
     ## -----------------------------
     if (!is.logical(plot) || length(plot) != 1) {
       stop("'plot' must be either TRUE or FALSE.")
@@ -160,12 +162,10 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
       stop("Plotting is only available for method = 'joint_method'. Set plot = FALSE or change method.")
     }
 
-
     time1 <- time[group == 1]
     censor1 <- status[group == 1]
     time2 <- time[group == 2]
     censor2 <- status[group == 2]
-
 
     ## -----------------------------
     ## Run selected method
@@ -183,31 +183,25 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
     }
   }
 
-  else if (censor_type == "double") {
+
+  else if (censor_type == "left") {
 
     ## -----------------------------
-    ## 1. Check required inputs
-    ## -----------------------------
-    if (missing(time) || missing(status) || missing(group) || missing(n_perm)) {
-      stop("All arguments ('time', 'status', 'group', and 'n_perm') must be provided.")
-    }
-
-    ## -----------------------------
-    ## 2. Check lengths
+    ## 1. Check lengths
     ## -----------------------------
     if (length(unique(c(length(time), length(status), length(group)))) != 1) {
       stop("Length mismatch: 'time', 'status', and 'group' must have the same length.")
     }
 
     ## -----------------------------
-    ## 3. Check missing values
+    ## 2. Check missing values
     ## -----------------------------
     if (any(is.na(c(time, status, group)))) {
-      stop("Missing values found in 'time', 'status', or 'group'.")
+      stop("Missing values found in at least one of 'time', 'status', or 'group'.")
     }
 
     ## -----------------------------
-    ## 4. Check data types
+    ## 3. Check data types
     ## -----------------------------
     if (!is.numeric(time)) {
       stop("'time' must be a numeric vector.")
@@ -222,45 +216,45 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
     }
 
     ## -----------------------------
-    ## 5. Check censoring values
+    ## 4. Check censoring values
     ## -----------------------------
-    if (!all(c(0, 1, -1) %in% status)) {
-      stop("'status' must contain all three values: 0 = event, 1 = right-censored, and -1 = left-censored, when censor_type = 'double'.")
+    if (!all(status %in% c(0, -1))) {
+      stop("'status' must contain only 0 (event) and -1 (left-censored) values, when censor_type = 'left'.")
     }
 
     ## -----------------------------
-    ## 6. Check n_perm
+    ## 5. Check n_perm
     ## -----------------------------
-    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0) {
-      stop("'n_perm' must be a positive numeric value.")
+    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0 || n_perm %% 1 != 0) {
+      stop("'n_perm' must be a positive integer.")
     }
 
     ## -----------------------------
-    ## 7. Check method
+    ## 6. Check method
     ## -----------------------------
     valid_methods <- c("roc_length", "ovl", "joint_method")
 
     if (length(method) != 1 || !method %in% valid_methods) {
-      stop("Method must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
+      stop("'method' must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
     }
 
     ## -----------------------------
-    ## 8. Check "group" values
+    ## 7. Check "group" values
     ##    & filter data based on that
     ## -----------------------------
-    if (!all(group %in% c(1, 2))) {
-      stop("'group' must contain only values 1 and 2.")
+    if (!all(group %in% c(1, 2)) || !all(c(1, 2) %in% group)) {
+      stop("'group' must contain exactly two groups coded as 1 and 2.")
     }
 
     ## -----------------------------
-    ## 9. Check progress bar
+    ## 8. Check progress bar
     ## -----------------------------
     if (!is.logical(progress) || length(progress) != 1) {
       stop("'progress' must be either TRUE or FALSE.")
     }
 
     ## -----------------------------
-    ## 10. Check plot argument
+    ## 9. Check plot argument
     ## -----------------------------
     if (!is.logical(plot) || length(plot) != 1) {
       stop("'plot' must be either TRUE or FALSE.")
@@ -270,6 +264,107 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
       stop("Plotting is only available for method = 'joint_method'. Set plot = FALSE or change method.")
     }
 
+    time1 <- time[group == 1]
+    censor1 <- status[group == 1]
+    time2 <- time[group == 2]
+    censor2 <- status[group == 2]
+
+    ## -----------------------------
+    ## Run selected method
+    ## -----------------------------
+    if (method == "roc_length") {
+      return(roc_LeftCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress))
+    }
+
+    if (method == "ovl") {
+      return(ovl_LeftCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress))
+    }
+
+    if (method == "joint_method") {
+      return(joint.roc_ovl_LeftCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress, plot))
+    }
+  }
+
+
+  else if (censor_type == "double") {
+
+    ## -----------------------------
+    ## 1. Check lengths
+    ## -----------------------------
+    if (length(unique(c(length(time), length(status), length(group)))) != 1) {
+      stop("Length mismatch: 'time', 'status', and 'group' must have the same length.")
+    }
+
+    ## -----------------------------
+    ## 2. Check missing values
+    ## -----------------------------
+    if (any(is.na(c(time, status, group)))) {
+      stop("Missing values found in at least one of 'time', 'status', or 'group'.")
+    }
+
+    ## -----------------------------
+    ## 3. Check data types
+    ## -----------------------------
+    if (!is.numeric(time)) {
+      stop("'time' must be a numeric vector.")
+    }
+
+    if (!is.numeric(status)) {
+      stop("'status' must be a numeric vector.")
+    }
+
+    if (!is.numeric(group)) {
+      stop("'group' must be a numeric vector.")
+    }
+
+    ## -----------------------------
+    ## 4. Check censoring values
+    ## -----------------------------
+    if (!all(status %in% c(0, 1, -1)) || !all(c(0, 1, -1) %in% status)) {
+      stop("'status' must contain all three values: 0 = event, 1 = right-censored, and -1 = left-censored, when censor_type = 'double'.")
+    }
+
+    ## -----------------------------
+    ## 5. Check n_perm
+    ## -----------------------------
+    if (!is.numeric(n_perm) || length(n_perm) != 1 || n_perm <= 0 || n_perm %% 1 != 0) {
+      stop("'n_perm' must be a positive integer.")
+    }
+
+    ## -----------------------------
+    ## 6. Check method
+    ## -----------------------------
+    valid_methods <- c("roc_length", "ovl", "joint_method")
+
+    if (length(method) != 1 || !method %in% valid_methods) {
+      stop("'method' must be exactly one of: 'roc_length', 'ovl', or 'joint_method'")
+    }
+
+    ## -----------------------------
+    ## 7. Check "group" values
+    ##    & filter data based on that
+    ## -----------------------------
+    if (!all(group %in% c(1, 2)) || !all(c(1, 2) %in% group)) {
+      stop("'group' must contain exactly two groups coded as 1 and 2.")
+    }
+
+    ## -----------------------------
+    ## 8. Check progress bar
+    ## -----------------------------
+    if (!is.logical(progress) || length(progress) != 1) {
+      stop("'progress' must be either TRUE or FALSE.")
+    }
+
+    ## -----------------------------
+    ## 9. Check plot argument
+    ## -----------------------------
+    if (!is.logical(plot) || length(plot) != 1) {
+      stop("'plot' must be either TRUE or FALSE.")
+    }
+
+    if (plot && method != "joint_method") {
+      stop("Plotting is only available for method = 'joint_method'. Set plot = FALSE or change method.")
+    }
 
     time1 <- time[group == 1]
     censor1 <- status[group == 1]
@@ -293,7 +388,7 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
   }
 
   else
-    stop("censor_type must be exactly one of: 'right' or 'double'")
+    stop("'censor_type' must be exactly one of: 'right', 'left', or 'double'")
 
 }
 

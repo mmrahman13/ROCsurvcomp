@@ -8,9 +8,9 @@ test_that("surv.comp function works", {
     time = EarlyEffectData$time,
     status = EarlyEffectData$status,
     group = EarlyEffectData$group,
-    n_perm = 10,
     censor_type = "right",
-    method = "joint_method"
+    method = "joint_method",
+    n_perm = 10
   )
 
   # Check class
