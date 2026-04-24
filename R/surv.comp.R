@@ -26,6 +26,13 @@
 #'     \item \code{"ovl"}: overlap coefficient-based test
 #'     \item \code{"joint_method"}: joint ROC length and OVL test.
 #'   }
+#' @param progress Logical value indicating whether to display a progress bar
+#'   during the permutation test. Default is \code{TRUE}. If \code{FALSE},
+#'   the computation runs silently without showing progress updates.
+#' @param plot Logical value indicating whether to generate a convex hull plot
+#'   based on the joint ROC length–OVL test. Default is \code{FALSE}.
+#'   Plotting is only available when \code{method = "joint_method"}; otherwise,
+#'   an error is returned if \code{plot = TRUE}.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -36,6 +43,10 @@
 #'     \item \code{estimate}: Estimated values of ROC length and/or OVL
 #'     \item \code{p_value}: Permutation-based two-sided p-values.
 #'   }
+#'   \item \code{plot}: A \code{ggplot2} object showing the convex hull
+#'   visualization of the permutation distribution for the joint ROC length-OVL test.
+#'   This is returned only when \code{method = "joint_method"} and
+#'   \code{plot = TRUE}; otherwise, it is \code{NULL}.
 #' }
 #'
 #' @details
@@ -52,15 +63,14 @@
 #' @examples
 #' \dontrun{
 #' # Example usage
-#' surv.comp(time, status, group, n_perm = 1000,
-#'           censor_type = "right", method = "roc_length")
-#'
-#' surv.comp(time, status, group, n_perm = 1000,
-#'           censor_type = "double", method = "joint_method")
+#' data("EarlyEffectData")
+#' surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group, n_perm = 1000,
+#'           censor_type = "right", method = "roc_length", progress = TRUE)
 #' }
-#'
 #' @export
-surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "double"), method = c("roc_length", "ovl", "joint_method")) {
+surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "double"),
+                      method = c("roc_length", "ovl", "joint_method"),
+                      progress = TRUE, plot = FALSE) {
 
   if (censor_type == "right") {
 
@@ -132,6 +142,25 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
       stop("'group' must contain only values 1 and 2.")
     }
 
+    ## -----------------------------
+    ## 9. Check progress bar
+    ## -----------------------------
+    if (!is.logical(progress) || length(progress) != 1) {
+      stop("'progress' must be either TRUE or FALSE.")
+    }
+
+    ## -----------------------------
+    ## 10. Check plot argument
+    ## -----------------------------
+    if (!is.logical(plot) || length(plot) != 1) {
+      stop("'plot' must be either TRUE or FALSE.")
+    }
+
+    if (plot && method != "joint_method") {
+      stop("Plotting is only available for method = 'joint_method'. Set plot = FALSE or change method.")
+    }
+
+
     time1 <- time[group == 1]
     censor1 <- status[group == 1]
     time2 <- time[group == 2]
@@ -142,15 +171,15 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
     ## Run selected method
     ## -----------------------------
     if (method == "roc_length") {
-      return(roc_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+      return(roc_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress))
     }
 
     if (method == "ovl") {
-      return(ovl_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+      return(ovl_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress))
     }
 
     if (method == "joint_method") {
-      return(joint.roc_ovl_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+      return(joint.roc_ovl_RightCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress, plot))
     }
   }
 
@@ -223,25 +252,43 @@ surv.comp <- function(time, status, group, n_perm, censor_type = c("right", "dou
       stop("'group' must contain only values 1 and 2.")
     }
 
+    ## -----------------------------
+    ## 9. Check progress bar
+    ## -----------------------------
+    if (!is.logical(progress) || length(progress) != 1) {
+      stop("'progress' must be either TRUE or FALSE.")
+    }
+
+    ## -----------------------------
+    ## 10. Check plot argument
+    ## -----------------------------
+    if (!is.logical(plot) || length(plot) != 1) {
+      stop("'plot' must be either TRUE or FALSE.")
+    }
+
+    if (plot && method != "joint_method") {
+      stop("Plotting is only available for method = 'joint_method'. Set plot = FALSE or change method.")
+    }
+
+
     time1 <- time[group == 1]
     censor1 <- status[group == 1]
     time2 <- time[group == 2]
     censor2 <- status[group == 2]
 
-
     ## -----------------------------
     ## Run selected method
     ## -----------------------------
     if (method == "roc_length") {
-      return(roc_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+      return(roc_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress))
     }
 
     if (method == "ovl") {
-      return(ovl_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+      return(ovl_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress))
     }
 
     if (method == "joint_method") {
-      return(joint.roc_ovl_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm))
+      return(joint.roc_ovl_DoubleCenSurvival_test(time1, censor1, time2, censor2, n_perm, progress, plot))
     }
   }
 

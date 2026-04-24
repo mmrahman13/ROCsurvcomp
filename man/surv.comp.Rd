@@ -10,7 +10,9 @@ surv.comp(
   group,
   n_perm,
   censor_type = c("right", "double"),
-  method = c("roc_length", "ovl", "joint_method")
+  method = c("roc_length", "ovl", "joint_method"),
+  progress = TRUE,
+  plot = FALSE
 )
 }
 \arguments{
@@ -38,6 +40,15 @@ Must be one of:
 \item \code{"ovl"}: overlap coefficient-based test
 \item \code{"joint_method"}: joint ROC length and OVL test.
 }}
+
+\item{progress}{Logical value indicating whether to display a progress bar
+during the permutation test. Default is \code{TRUE}. If \code{FALSE},
+the computation runs silently without showing progress updates.}
+
+\item{plot}{Logical value indicating whether to generate a convex hull plot
+based on the joint ROC length–OVL test. Default is \code{FALSE}.
+Plotting is only available when \code{method = "joint_method"}; otherwise,
+an error is returned if \code{plot = TRUE}.}
 }
 \value{
 A list containing:
@@ -49,6 +60,10 @@ A list containing:
 \item \code{estimate}: Estimated values of ROC length and/or OVL
 \item \code{p_value}: Permutation-based two-sided p-values.
 }
+\item \code{plot}: A \code{ggplot2} object showing the convex hull
+visualization of the permutation distribution for the joint ROC length-OVL test.
+This is returned only when \code{method = "joint_method"} and
+\code{plot = TRUE}; otherwise, it is \code{NULL}.
 }
 }
 \description{
@@ -70,11 +85,8 @@ censoring indicators, and method specification.
 \examples{
 \dontrun{
 # Example usage
-surv.comp(time, status, group, n_perm = 1000,
-          censor_type = "right", method = "roc_length")
-
-surv.comp(time, status, group, n_perm = 1000,
-          censor_type = "double", method = "joint_method")
+data("EarlyEffectData")
+surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group, n_perm = 1000,
+          censor_type = "right", method = "roc_length", progress = TRUE)
 }
-
 }
