@@ -37,17 +37,14 @@ remotes::install_github("mmrahman13/ROCsurvcomp")
 library(ROCsurvcomp)
 data("EarlyEffectData")
 
-result <- surv.comp(
-  time = EarlyEffectData$time,
-  status = EarlyEffectData$status,
-  group = EarlyEffectData$group,
-  censor_type = "right",
-  method = "roc_length",
-  n_perm = 1000,
-  progress = TRUE,
-  plot = FALSE)
-
-print(result)
+surv.comp(time = EarlyEffectData$time,
+          status = EarlyEffectData$status,
+          group = EarlyEffectData$group,
+          censor_type = "right",
+          method = "roc_length",
+          n_perm = 1000,
+          progress = TRUE,
+          plot = FALSE)
 ```
 
 ## Methodology

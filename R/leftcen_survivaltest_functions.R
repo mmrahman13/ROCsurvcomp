@@ -1,11 +1,11 @@
 ########################********************##########################
 ################ -------------------------- ##################
-###################### Double censoring ######################
+###################### Left censoring ######################
 ################ -------------------------- ##################
 ########################********************##########################
 
 ######################################################################
-####### Functions for imputation with Double censoring ########
+####### Functions for imputation with Left censoring ########
 ######################################################################
 
 ######################################################################
@@ -25,7 +25,7 @@ Calc_number_LEFTcen_before_1stevent <- function(cens_stat) {
 
 
 ######################################################################
-############## Our Method with double censoring ###############
+############## Our Method with Left censoring ###############
 ####### ------------- Only ROC Length ------------- ##########
 ######################################################################
 
@@ -34,7 +34,7 @@ roc_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, prog
   ##### ------------------------------------------------
   ##### censoring status (0 = event, -1 = left censored)
 
-  # double censored data for trt and ctrl
+  # Left censored data for trt and ctrl
   time_tt = time1
   cens_stat_t = censor1
   n_trt = length(time_tt)
@@ -380,7 +380,7 @@ roc_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, prog
 
 
 ######################################################################
-############## Our Method with double censoring ###############
+############## Our Method with Left censoring ###############
 ####### ------------ Only OVL ------------- #######
 ######################################################################
 
@@ -389,7 +389,7 @@ ovl_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, prog
   ##### ------------------------------------------------
   ##### censoring status (0 = event, -1 = left censored)
 
-  # double censored data for trt and ctrl
+  # Left censored data for trt and ctrl
   time_tt = time1
   cens_stat_t = censor1
   n_trt = length(time_tt)
@@ -736,7 +736,7 @@ ovl_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, boots, prog
 
 
 ######################################################################
-############## Our Method with double censoring ###############
+############## Our Method with Left censoring ###############
 #### ------- JOINT ROC Length & OVL -------- #######
 ######################################################################
 
@@ -745,7 +745,7 @@ joint.roc_ovl_LeftCenSurvival_test <- function(time1, censor1, time2, censor2, b
   ##### ------------------------------------------------
   ##### censoring status (0 = event, -1 = left censored)
 
-  # double censored data for trt and ctrl
+  # Left censored data for trt and ctrl
   time_tt = time1
   cens_stat_t = censor1
   n_trt = length(time_tt)

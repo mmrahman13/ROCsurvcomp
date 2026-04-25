@@ -1,4 +1,4 @@
-#' @title Compare Two Survival Distributions Using ROC-Based Methods for Right, Left, and Doubly Censored Data
+#' @title ROC-Based Methods for Comparing Survival Distributions with Right, Left, and Doubly Censored Data
 #'
 #' @description Performs a nonparametric comparison of two survival distributions under
 #' right, left, or double censoring using ROC-based metrics, including ROC curve length,
@@ -65,8 +65,9 @@
 #' \dontrun{
 #' # Example usage
 #' data("EarlyEffectData")
-#' surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status, group = EarlyEffectData$group,
-#'           censor_type = "right", method = "roc_length", n_perm = 1000, progress = TRUE, plot = FALSE)
+#' surv.comp(time = EarlyEffectData$time, status = EarlyEffectData$status,
+#'           group = EarlyEffectData$group, censor_type = "right",
+#'           method = "roc_length", n_perm = 1000, progress = TRUE, plot = FALSE)
 #' }
 #' @export
 surv.comp <- function(time, status, group, censor_type, method,
