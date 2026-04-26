@@ -19,7 +19,7 @@ Traditional log-rank test may lose power when the proportional hazards assumptio
 
 ## Installation
 
-You can install from GitHub:
+You can install the package from GitHub:
 
 ```r
 # install.packages("remotes")    # if not installed
