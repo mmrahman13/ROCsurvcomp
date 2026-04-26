@@ -68,7 +68,7 @@ surv.comp(
   group = group,
   censor_type = "right",
   method = "joint_method",
-  n_perm = 10,
+  n_perm = 1000,
   progress = TRUE,
   plot = TRUE
 )
