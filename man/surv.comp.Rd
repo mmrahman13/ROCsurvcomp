@@ -89,7 +89,7 @@ censoring indicators, and method specification.
 library(ROCsurvcomp)
 library(PWEXP)
 
-# Generating data with crossing survivals
+# Generating right-censored data with crossing survivals
 set.seed(800)
 n_trt <- 100
 break_trt <- c(3, 7)

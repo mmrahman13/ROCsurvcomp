@@ -1,6 +1,8 @@
 ---
 title: "ROCsurvcomp"
+author: "MM Rahman and LE Bantis"
 output: rmarkdown::html_vignette
+bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{ROCsurvcomp}
   %\VignetteEngine{knitr::rmarkdown}
@@ -11,7 +13,7 @@ vignette: >
 
 The **ROCsurvcomp** package provides statistical tools for comparing survival distributions under non-proportional hazards (non-PH). Traditional methods such as the log-rank test rely on the proportional hazards assumption and may lose power when this assumption is violated. Alternative approaches, including the Fleming–Harrington family of weighted log-rank tests, often require prior specification of weight functions that depend on the unknown pattern of hazard differences. Misspecification of this pattern may lead to a substantial loss of statistical power.
 
-To address these limitations, the package implements a novel nonparametric and semiparametric framework for comparing two survival curves based on the length of the ROC curve and the overlap coefficient, along with a joint inference approach that combines both measures. These methods:
+To address these issues, the package implements a novel nonparametric and semiparametric framework for comparing two survival curves based on the length of the ROC curve and the overlap coefficient, along with a joint inference approach that combines both measures. These methods:
 
 - do not require prior knowledge of the underlying hazard patterns
 - provide robust power across a wide range of non-PH scenarios (early, late, or crossing effects)
@@ -24,36 +26,36 @@ To address these limitations, the package implements a novel nonparametric and s
 
 ### ROC Length
 
-The first method is based on the length of the Receiver Operating Characteristic (ROC) curve. The ROC curve is one of the most widely used statistical methods for evaluating continuous classifiers that attempt to distinguish between two groups, typically a control group (group 1) and a diseased group (group 2). \cite{Pepe2003Statistical}
+The first method is based on the length of the Receiver Operating Characteristic (ROC) curve. The ROC curve is one of the most widely used statistical methods for evaluating continuous classifiers that attempt to distinguish between two groups, typically a control group (group 1) and a diseased group (group 2) [@Pepe2003Statistical].
 
-Let $X_1$ and $X_2$ denote the continuous scores of the classifier for groups 1 and 2, respectively, with survival functions $S_1(\cdot) = 1 - F_1(\cdot)$ and $S_2(\cdot) = 1 - F_2(\cdot)$, where $F_1$ and $F_2$ are the cumulative distribution functions (cdf) of the two groups with a common support. The corresponding probability density functions (pdf) are denoted with $f_1(\cdot)$ and $f_2(\cdot)$. The implied ROC curve is then given by \cite{Pepe2003Statistical},
+Let $X_1$ and $X_2$ denote the continuous scores of the classifier for groups 1 and 2, respectively, with survival functions $S_1(\cdot) = 1 - F_1(\cdot)$ and $S_2(\cdot) = 1 - F_2(\cdot)$, where $F_1$ and $F_2$ are the cumulative distribution functions (cdf) of the two groups with a common support. The corresponding probability density functions (pdf) are denoted with $f_1(\cdot)$ and $f_2(\cdot)$. The implied ROC curve is then given by [@Pepe2003Statistical],
 
 \begin{eqnarray}
 \text{ROC}(p) = S_2(S_1^{-1}(p)), \quad p \in (0,1). 
 \end{eqnarray}
 
-The length of ROC curve, denoted by $l_{\text{ROC}}$, is defined as:
+The length of ROC curve, denoted by $l_{\text{ROC}}$, is defined as [@Bantis2021Length]:
 
 \begin{eqnarray}
     l_{\text{ROC}} = \int_{-\infty}^{\infty} \sqrt{1+\left( \frac{d \text{ROC}(p)}{dp}\right)^2} \, dp = \int_{-\infty}^{\infty} \sqrt{f_1^2(x) + f_2^2(x)} \, dx.
 \end{eqnarray}
 
-It can be shown that  $\sqrt{2} \leq l_{\text{ROC}} \leq 2$. \cite{Bantis2021Length} The lower bound $\sqrt{2}$, is achieved if and only if the distributions of two groups are exactly identical. On the other hand, $l_{\text{ROC}}=2$ if and only if the two distributions are perfectly separated.
+The range of the value of ROC length is:  $\sqrt{2} \leq l_{\text{ROC}} \leq 2$. The lower bound $\sqrt{2}$, is achieved if and only if the distributions of two groups are exactly identical. On the other hand, $l_{\text{ROC}}=2$ if and only if the two distributions are perfectly separated.
 
 ### Overlap Coefficient (OVL)
 
-The second method utilizes the overlap coefficient (OVL), which measures the similarity between two distributions using the common area between two probability density functions. \cite{FrancoPereira2021Overlap} The overlap area between the density curves of $f_1$ and $f_2$, defined as OVL is given by,
+The second method utilizes the overlap coefficient (OVL), which measures the similarity between two distributions using the common area between two probability density functions [@FrancoPereira2021Overlap]. The overlap area between the density curves of $f_1$ and $f_2$, defined as OVL is given by,
 
 \begin{eqnarray}
 \text{OVL} = \int_{-\infty}^{\infty} \min\left[ f_1(x), f_2(x) \right] \, dx.
 \end{eqnarray}
 
-The value of OVL ranges between zero and unity. OVL $=0$ if and only if the two distributions $f_1$ and $f_2$ are completely disjoint, and OVL $=1$ if and only if the two distributions are exactly identical. \cite{FrancoPereira2021Overlap}
+The range of the value of OVL is:  $0 \leq OVL \leq 1$. OVL $=0$ if and only if the distributions of the two groups are completely disjoint, and OVL $=1$ if and only if the two distributions are exactly identical [@FrancoPereira2021Overlap].
 
-Kernel density estimation is used to estimate the densities of the two underlying groups. In the case of right censoring, the kernel density estimator is adjusted by replacing the empirical cumulative distribution function (cdf) with the Kaplan-Meier estimator. For left and doubly censored data, a similar approach is applied using the Turnbull estimator. Moreover, if the last observation is right-censored and/or the first observation is left-censored, censored observations beyond the last and/or before the first ordered uncensored event time are imputed. A Box–Cox transformation is utilized for this imputation step.
+Kernel density estimation is used to estimate the densities of the two underlying groups. In the case of right censoring, the kernel density estimator is adjusted by replacing the empirical cumulative distribution function (cdf) with the Kaplan-Meier estimator. For left and doubly censored data, a similar approach is applied using the Turnbull estimator. Moreover, if the last observation is right-censored and/or the first observation is left-censored, censored observations beyond the last and/or before the first ordered uncensored event time are imputed, following the approach described by @Bantis2021Length. A Box-Cox transformation is utilized for this imputation process.
 
 ### Joint ROC length-OVL-based Method
-A joint inference framework is used to combine both ROC length and OVL measures. This method is based on the convex hull of the permuted samples, constructed using their Euclidean distance from the origin.
+A joint inference framework is used to combine both ROC length and OVL measures. This method is based on the convex hull of the permuted samples, which is constructed using their Euclidean distance from the origin.
 
 ### Inference
 Let $S_1(t)$ and $S_2(t)$ denote survival probabilities at time $t \geq 0$ for the two groups. The hypothesis to be tested is:
@@ -113,7 +115,7 @@ Statistical significance is assessed using a permutation-based test.
       This is returned only when `method = "joint_method"` and  
       `plot = TRUE`; otherwise, it is `NULL`.
       
-- **Example:**
+- **Example**
 
 ```{r}
 library(ROCsurvcomp)
