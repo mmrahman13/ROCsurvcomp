@@ -1,5 +1,10 @@
-# ROCsurvcomp 0.1.0
+# ROCsurvcomp 0.1.1
+## Minor changes
 
+- Updated license field to use GPL-3 without an additional LICENSE file
+- Added references with DOIs in the Description field
+
+# ROCsurvcomp 0.1.0
 ## Initial release
 
 - Provides ROC-based methods for comparing survival distributions under non-proportional hazards
