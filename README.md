@@ -3,7 +3,7 @@
 ## Overview
 
 **ROCsurvcomp** is an R package for comparing survival curves under non-proportional hazards (non-PH) using ROC-based methods.
-Traditional log-rank test may lose power when the proportional hazards assumption is violated. Other methods, such as the Flemming-Harrington (FH) family of weighted log-rank tests require prior knowledge of the underlying non-PH patterns, and mis-specified patterns may lead to a substantial loss of statistical power. This package provides alternative approaches for comparing survival curves based on ROC curve, without requiring prior knowledge of the underlying non-PH pattern, and can accommodate right, left, and doubly censored data.
+Traditional log-rank test may lose power when the proportional hazards assumption is violated. Other methods, such as the Fleming-Harrington (FH) family of weighted log-rank tests require prior knowledge of the underlying non-PH patterns, and incorrectly specified patterns may lead to a substantial loss of statistical power. This package provides alternative approaches for comparing survival curves based on ROC curve, without requiring prior knowledge of the underlying non-PH pattern, and can accommodate right, left, and doubly censored data.
 
 ## Key Features
 
@@ -36,17 +36,17 @@ library(ROCsurvcomp)
 library(PWEXP)
 
 # Generating right-censored data with crossing survivals
-set.seed(800)
-n_trt <- 100
-break_trt <- c(3, 7)
-rate_trt <- c(log(2)/5, log(2)/8, log(2)/13)
-rate.censor_trt <- c(log(2)/20.80, log(2)/23.80, log(2)/28.80)
+set.seed(126)
+n_trt <- 50
+break_trt <- c(2, 4)
+rate_trt <- c(log(2)/3, log(2)/7, log(2)/20)
+rate.censor_trt <- c(log(2)/55, log(2)/62, log(2)/68)
 event_trt <- PWEXP::rpwexp(n_trt, rate = rate_trt, breakpoint = break_trt)
 censor_trt <- PWEXP::rpwexp(n_trt, rate = rate.censor_trt, breakpoint = break_trt)
 
-n_ctrl <- 100
-rate_ctrl <- log(2)/8
-rate.censor_ctrl <- log(2)/24
+n_ctrl <- 50
+rate_ctrl <- log(2)/10
+rate.censor_ctrl <- log(2)/58
 event_ctrl <- rexp(n_ctrl, rate = rate_ctrl)
 censor_ctrl <- rexp(n_ctrl, rate = rate.censor_ctrl)
 
@@ -59,7 +59,7 @@ time <- c(time_trt, time_ctrl)
 status <- c(status_trt, status_ctrl)
 group <- c(rep(1, n_trt), rep(2, n_ctrl))
 
-# Run `surv.comp` function
+# Run `surv.comp()` function
 surv.comp(
   time = time,
   status = status,

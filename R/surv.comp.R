@@ -1,11 +1,8 @@
 #' @title ROC-Based Methods for Comparing Survival Distributions with Right, Left, and Doubly Censored Data
 #'
-#' @description Performs a nonparametric and semiparametric comparison of two survival distributions under
+#' @description Performs nonparametric and semiparametric comparisons of two survival distributions under
 #' right, left, or double censoring using ROC-based metrics, including ROC curve length,
 #' overlap coefficient (OVL), and a joint ROC length–OVL test.
-#'
-#' @importFrom stats dnorm integrate median optim pnorm qnorm rnorm sd
-#' @importFrom utils tail
 #'
 #' @param time Numeric vector of observed follow-up times (event or censoring times)
 #'   for all observations.
@@ -24,9 +21,9 @@
 #'   \itemize{
 #'     \item \code{"roc_length"}: ROC curve length-based test
 #'     \item \code{"ovl"}: overlap coefficient-based test
-#'     \item \code{"joint_method"}: joint ROC length and OVL test.
+#'     \item \code{"joint_method"}: joint ROC length-OVL-based test
 #'   }
-#' @param n_perm Integer specifying the number of permutation samples used to compute p-values.
+#' @param n_perm Integer specifying the number of permutation samples used to compute p-values. A small value is used in the example for computational efficiency; larger values are recommended in practice (typically 1,000 or more) to obtain more stable and reliable inference.
 #' @param progress Logical value indicating whether to display a progress bar
 #'   during the permutation test. Default is \code{TRUE}. If \code{FALSE},
 #'   the computation runs silently without showing progress updates.
@@ -38,7 +35,7 @@
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{message}: A character string describing the testing procedure.
-#'   \item \code{result}: A data frame with rows corresponding to the methods
+#'   \item \code{result}: A data frame with rows corresponding to the selected methods
 #'   (ROC Length, OVL, and/or Joint ROC Length-OVL) and columns:
 #'   \itemize{
 #'     \item \code{estimate}: Estimated values of ROC length and/or OVL
@@ -56,28 +53,38 @@
 #' The ROC length measures global separation between survival curves, while the
 #' overlap coefficient (OVL) quantifies distributional similarity. Density estimation is performed using nonparametric kernel methods,
 #' where the cumulative distribution function (CDF) is estimated
-#' using the Kaplan–Meier estimator under right censoring or the Turnbull estimator under left and double censoring.
+#' using the Kaplan–Meier estimator under right censoring and the Turnbull estimator under left and double censoring.
 #'
-#' Input validation is performed to ensure consistency of vector lengths,
-#' censoring indicators, and method specification.
+#' @references
+#' Pepe MS (2003).
+#' \emph{The Statistical Evaluation of Medical Tests for Classification and Prediction}.
+#' Oxford University Press.
+#'
+#' Bantis LE, Tsimikas JV, Chambers G, Capello M, Hanash S, Feng Z (2021).
+#' The length of the ROC curve and the two cutoff Youden index within a robust framework
+#' for discovery, evaluation, and cutoff estimation in biomarker studies involving improper ROC curves.
+#' \emph{Statistics in Medicine}, 40(7), 1767--1789.
+#'
+#' Franco-Pereira AM, Nakas CT, Reiser B, Pardo MC (2021).
+#' Inference on the overlap coefficient: The binormal approach and alternatives.
+#' \emph{Statistical Methods in Medical Research}, 30(12), 2672--2684.
 #'
 #' @examples
-#' \dontrun{
-#' #### Example usage
+#' # Example usage
 #' library(ROCsurvcomp)
 #' library(PWEXP)
 #'
 #' # Generating right-censored data with crossing survivals
-#' set.seed(800)
-#' n_trt <- 100
-#' break_trt <- c(3, 7)
-#' rate_trt <- c(log(2)/5, log(2)/8, log(2)/13)
-#' rate.censor_trt <- c(log(2)/20.80, log(2)/23.80, log(2)/28.80)
+#' set.seed(126)
+#' n_trt <- 50
+#' break_trt <- c(2, 4)
+#' rate_trt <- c(log(2)/3, log(2)/7, log(2)/20)
+#' rate.censor_trt <- c(log(2)/55, log(2)/62, log(2)/68)
 #' event_trt <- PWEXP::rpwexp(n_trt, rate = rate_trt, breakpoint = break_trt)
 #' censor_trt <- PWEXP::rpwexp(n_trt, rate = rate.censor_trt, breakpoint = break_trt)
-#' n_ctrl <- 100
-#' rate_ctrl <- log(2)/8
-#' rate.censor_ctrl <- log(2)/24
+#' n_ctrl <- 50
+#' rate_ctrl <- log(2)/10
+#' rate.censor_ctrl <- log(2)/58
 #' event_ctrl <- rexp(n_ctrl, rate = rate_ctrl)
 #' censor_ctrl <- rexp(n_ctrl, rate = rate.censor_ctrl)
 #'
@@ -90,10 +97,10 @@
 #' status <- c(status_trt, status_ctrl)
 #' group <- c(rep(1, n_trt), rep(2, n_ctrl))
 #'
-#' # Run `surv.comp` function
+#' # Run surv.comp()
 #' surv.comp(time = time, status = status, group = group, censor_type = "right",
-#'           method = "roc_length", n_perm = 1000, progress = TRUE, plot = FALSE)
-#' }
+#'           method = "roc_length", n_perm = 10, progress = TRUE, plot = FALSE)
+#'
 #' @export
 surv.comp <- function(time, status, group, censor_type, method,
                       n_perm, progress = TRUE, plot = FALSE) {

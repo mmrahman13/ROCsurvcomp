@@ -1,14 +1,17 @@
 Package: ROCsurvcomp
 Title: ROC-Based Methods for Comparing Survival Distributions with Right, Left, and Doubly Censored Data
 Version: 0.1.0
-Authors@R: c(person("Mohammod Mahmudur", "Rahman", email = "mahmudur.asif13@gmail.com", role = c("aut", "cre")), person("Leonidas", "Bantis", role = "aut"))
+Date: 2026-04-30
+Authors@R: c(person("Mohammod Mahmudur", "Rahman", role = c("aut", "cre"),
+             email = "mahmudur.asif13@gmail.com"),
+             person("Leonidas", "Bantis", role = "aut",
+             email = "lbantis@kumc.edu"))
 Maintainer: Mohammod Mahmudur Rahman <mahmudur.asif13@gmail.com>
 Description: Implements ROC-length, overlap coefficient (OVL), and joint ROC length-OVL-based methods for comparing survival distributions under non-proportional hazards (non-PH). The methods do not require any prior knowledge of the underlying non-PH pattern, and can accommodate right, left, and doubly censored data.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-LazyData: true
 Imports:
     survival,
     interval,
@@ -20,7 +23,7 @@ Suggests:
     rmarkdown,
     PWEXP,
     testthat (>= 3.0.0)
-Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
+Config/testthat/edition: 3
 VignetteBuilder: knitr

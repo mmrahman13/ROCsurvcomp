@@ -1,6 +1,7 @@
 ---
 title: "ROCsurvcomp"
 author: "MM Rahman and LE Bantis"
+date: 2026-04-30
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
@@ -11,7 +12,7 @@ vignette: >
 
 ## About the ROCsurvcomp Package
 
-The **ROCsurvcomp** package provides statistical tools for comparing survival distributions under non-proportional hazards (non-PH). Traditional methods such as the log-rank test rely on the proportional hazards assumption and may lose power when this assumption is violated. Alternative approaches, including the Fleming–Harrington family of weighted log-rank tests, often require prior specification of weight functions that depend on the unknown pattern of hazard differences. Misspecification of this pattern may lead to a substantial loss of statistical power.
+The **ROCsurvcomp** package provides statistical tools for comparing survival distributions under non-proportional hazards (non-PH). Traditional methods such as the log-rank test rely on the proportional hazards assumption and may lose power when this assumption is violated. Alternative approaches, including the Fleming–Harrington family of weighted log-rank tests, often require prior specification of weight functions that depend on the unknown pattern of hazard differences. Incorrect specification of this pattern may lead to a substantial loss of statistical power.
 
 To address these issues, the package implements a novel nonparametric and semiparametric framework for comparing two survival curves based on the length of the ROC curve and the overlap coefficient, along with a joint inference approach that combines both measures. These methods:
 
@@ -28,7 +29,7 @@ To address these issues, the package implements a novel nonparametric and semipa
 
 The first method is based on the length of the Receiver Operating Characteristic (ROC) curve. The ROC curve is one of the most widely used statistical methods for evaluating continuous classifiers that attempt to distinguish between two groups, typically a control group (group 1) and a diseased group (group 2) [@Pepe2003Statistical].
 
-Let $X_1$ and $X_2$ denote the continuous scores of the classifier for groups 1 and 2, respectively, with survival functions $S_1(\cdot) = 1 - F_1(\cdot)$ and $S_2(\cdot) = 1 - F_2(\cdot)$, where $F_1$ and $F_2$ are the cumulative distribution functions (cdf) of the two groups with a common support. The corresponding probability density functions (pdf) are denoted with $f_1(\cdot)$ and $f_2(\cdot)$. The implied ROC curve is then given by [@Pepe2003Statistical],
+Let $X_1$ and $X_2$ denote the continuous scores of the classifier for groups 1 and 2, respectively, with survival functions $S_1(\cdot) = 1 - F_1(\cdot)$ and $S_2(\cdot) = 1 - F_2(\cdot)$, where $F_1$ and $F_2$ are the cumulative distribution functions (CDF) of the two groups with a common support. The corresponding probability density functions (PDF) are denoted with $f_1(\cdot)$ and $f_2(\cdot)$. The implied ROC curve is then given by [@Pepe2003Statistical],
 
 \begin{eqnarray}
 \text{ROC}(p) = S_2(S_1^{-1}(p)), \quad p \in (0,1). 
@@ -40,24 +41,25 @@ The length of ROC curve, denoted by $l_{\text{ROC}}$, is defined as [@Bantis2021
     l_{\text{ROC}} = \int_{-\infty}^{\infty} \sqrt{1+\left( \frac{d \text{ROC}(p)}{dp}\right)^2} \, dp = \int_{-\infty}^{\infty} \sqrt{f_1^2(x) + f_2^2(x)} \, dx.
 \end{eqnarray}
 
-The range of the value of ROC length is:  $\sqrt{2} \leq l_{\text{ROC}} \leq 2$. The lower bound $\sqrt{2}$, is achieved if and only if the distributions of two groups are exactly identical. On the other hand, $l_{\text{ROC}}=2$ if and only if the two distributions are perfectly separated.
+The range of ROC length is:  $\sqrt{2} \leq l_{\text{ROC}} \leq 2$. The lower bound $\sqrt{2}$ is achieved if and only if the distributions of two groups are exactly identical. On the other hand, $l_{\text{ROC}}=2$ if and only if the two distributions are perfectly separated.
 
 ### Overlap Coefficient (OVL)
 
-The second method utilizes the overlap coefficient (OVL), which measures the similarity between two distributions using the common area between two probability density functions [@FrancoPereira2021Overlap]. The overlap area between the density curves of $f_1$ and $f_2$, defined as OVL is given by,
+The second method utilizes the overlap coefficient (OVL), which measures the similarity between two distributions using the common area between two probability density functions [@FrancoPereira2021Overlap]. The overlap area between the density curves of $f_1$ and $f_2$, defined as OVL, is given by,
 
 \begin{eqnarray}
 \text{OVL} = \int_{-\infty}^{\infty} \min\left[ f_1(x), f_2(x) \right] \, dx.
 \end{eqnarray}
 
-The range of the value of OVL is:  $0 \leq OVL \leq 1$. OVL $=0$ if and only if the distributions of the two groups are completely disjoint, and OVL $=1$ if and only if the two distributions are exactly identical [@FrancoPereira2021Overlap].
-
-Kernel density estimation is used to estimate the densities of the two underlying groups. In the case of right censoring, the kernel density estimator is adjusted by replacing the empirical cumulative distribution function (cdf) with the Kaplan-Meier estimator. For left and doubly censored data, a similar approach is applied using the Turnbull estimator. Moreover, if the last observation is right-censored and/or the first observation is left-censored, censored observations beyond the last and/or before the first ordered uncensored event time are imputed, following the approach described by @Bantis2021Length. A Box-Cox transformation is utilized for this imputation process.
+The range of OVL is:  $0 \leq OVL \leq 1$. OVL $=0$ if and only if the distributions of the two groups are completely disjoint, and OVL $=1$ if and only if the two distributions are exactly identical [@FrancoPereira2021Overlap].
 
 ### Joint ROC length-OVL-based Method
-A joint inference framework is used to combine both ROC length and OVL measures. This method is based on the convex hull of the permuted samples, which is constructed using their Euclidean distance from the origin.
+A joint inference framework is used to combine both ROC length and OVL measures. This method is based on the convex hull of the estimates obtained from permuted samples, constructed using their Euclidean distances from the origin. Before applying this procedure, both measures are standardized to a common scale using their corresponding percentile ranks.
 
-### Inference
+### Estimation of ROC-length and OVL
+Kernel density estimation is used to estimate the densities of the two underlying groups. A Box-Cox transformation is applied to the data prior to density estimation, as Silverman’s bandwidth (and other similar closed-form bandwidths) is optimized for approximately normal densities. Thus, transforming the data may improve density estimation, especially when Gaussian kernels are involved. In the case of the right-censored data, the kernel density estimator is adjusted by replacing the empirical CDF with the Kaplan-Meier estimator. For left- and doubly censored data, a similar approach is applied using the Turnbull estimator. Moreover, if the last observation is right-censored and/or the first observation is left-censored, censored observations beyond the last and/or before the first ordered uncensored event time are imputed by utilizing the Box-Cox transformed estimated parameters, following the approach described by @Bantis2021Length. Note that imputation is used only to complete the tails and not for the main body of the data.
+
+### Inference Procedure
 Let $S_1(t)$ and $S_2(t)$ denote survival probabilities at time $t \geq 0$ for the two groups. The hypothesis to be tested is:
 
 \begin{eqnarray*}
@@ -67,12 +69,18 @@ H_1 &:& S_1(t) \neq S_2(t). \nonumber
 
 Note that the above hypothesis is equivalent to testing $H_0: l_\text{ROC} = \sqrt{2}$ vs. $H_1: l_\text{ROC} \neq \sqrt{2}$ or $H_0: \text{OVL} = 1$ vs. $H_1: \text{OVL} \neq 1$. 
 
-Statistical significance is assessed using a permutation-based test.
+Statistical significance is assessed using a permutation-based test. The estimation procedure described above is applied to obtain $\hat{l}_{ROC}$ and $\hat{OVL}$ from the original sample. To conduct permutation-based testing, all observations from both groups are first pooled into a single dataset. Then, $n_1$ observations are randomly selected without replacement to form group 1 under permutation, and the remaining $n_2$ observations are assigned to group 2. For each permuted sample $p = 1, \ldots,P$, where $P$ denotes the total number of permutations, $\hat{l}^{(p)}_{\text{ROC}}$ and $\hat{OVL}^{(p)}$ are computed using the same estimation procedure.
+
+The null hypothesis is rejected at a nominal level of $5\%$ if the $\hat{l}_\text{ROC}$ is greater than the 95th percentile value of the kernel-based $\hat{l}^{(p)}_{\text{ROC}}$ obtained from $P$ number of permutations. A similar procedure is applied for the OVL-based test. For joint inference using the combination of ROC length and OVL-based methods, the permutation-based pairs $\left( 1 - \hat{OVL}^{(p)}, \hat{l}_{ROC}^{(p)} - \sqrt{2} \right)$ are standardized to a common scale using their corresponding percentile ranks. Then the convex hull is constructed that contains only those pairs of values that fall within the 95th percentile of the Euclidean distance from the origin $(0, 0)$. The null hypothesis is rejected at a nominal level of $5\%$ if the percentile-ranked observed point corresponding to $\left( 1 - \hat{OVL}, \hat{l}_{ROC} - \sqrt{2} \right)$ lies outside the convex hull.
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics("figures/joint_plot.png")
+```
 
 ---
 
 
-## `surv.comp` function
+## `surv.comp()` function
 
 - **Description**
   - This function performs a nonparametric and semiparametric comparison of two survival distributions under right, left, or double censoring using ROC-based metrics, including ROC curve length, overlap coefficient (OVL), and a joint ROC length–OVL test.
@@ -97,7 +105,7 @@ Statistical significance is assessed using a permutation-based test.
     - `"ovl"`: overlap coefficient-based test  
     - `"joint_method"`: joint ROC length and OVL test.
 
-  - `n_perm`: Integer specifying the number of permutation samples used to compute p-values.
+  - `n_perm`: Integer specifying the number of permutation samples used to compute p-values. A small value is used in the examples for computational efficiency; larger values are recommended in practice (typically 1,000 or more) to obtain more stable and reliable inference.
 
   - `progress`: Logical value indicating whether to display a progress bar during the permutation test. Default is `TRUE`. If `FALSE`, the computation runs silently without showing progress updates.
 
@@ -124,17 +132,17 @@ library(ggplot2)
 library(PWEXP)
 
 # Generating right-censored data with crossing survivals
-set.seed(800)
-n_trt <- 100
-break_trt <- c(3, 7)
-rate_trt <- c(log(2)/5, log(2)/8, log(2)/13)
-rate.censor_trt <- c(log(2)/20.80, log(2)/23.80, log(2)/28.80)
+set.seed(126)
+n_trt <- 50
+break_trt <- c(2, 4)
+rate_trt <- c(log(2)/3, log(2)/7, log(2)/20)
+rate.censor_trt <- c(log(2)/55, log(2)/62, log(2)/68)
 event_trt <- PWEXP::rpwexp(n_trt, rate = rate_trt, breakpoint = break_trt)
 censor_trt <- PWEXP::rpwexp(n_trt, rate = rate.censor_trt, breakpoint = break_trt)
 
-n_ctrl <- 100
-rate_ctrl <- log(2)/8
-rate.censor_ctrl <- log(2)/24
+n_ctrl <- 50
+rate_ctrl <- log(2)/10
+rate.censor_ctrl <- log(2)/58
 event_ctrl <- rexp(n_ctrl, rate = rate_ctrl)
 censor_ctrl <- rexp(n_ctrl, rate = rate.censor_ctrl)
 
@@ -158,11 +166,13 @@ surv.comp(
   status = status,
   group = group,
   censor_type = "right",
-  method = "joint_method",
+  method = "roc_length",
   n_perm = 10,
   progress = TRUE,
-  plot = TRUE
+  plot = FALSE
 )
 ```
 
 ## References
+
+<div id="refs"></div>

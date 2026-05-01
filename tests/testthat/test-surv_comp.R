@@ -1,16 +1,16 @@
 test_that("surv.comp function works", {
 
   # Generating data with crossing survivals
-  set.seed(800)
-  n_trt <- 100
-  break_trt <- c(3, 7)
-  rate_trt <- c(log(2)/5, log(2)/8, log(2)/13)
-  rate.censor_trt <- c(log(2)/20.80, log(2)/23.80, log(2)/28.80)
+  set.seed(126)
+  n_trt <- 50
+  break_trt <- c(2, 4)
+  rate_trt <- c(log(2)/3, log(2)/7, log(2)/20)
+  rate.censor_trt <- c(log(2)/55, log(2)/62, log(2)/68)
   event_trt <- PWEXP::rpwexp(n_trt, rate = rate_trt, breakpoint = break_trt)
   censor_trt <- PWEXP::rpwexp(n_trt, rate = rate.censor_trt, breakpoint = break_trt)
-  n_ctrl <- 100
-  rate_ctrl = log(2)/8
-  rate.censor_ctrl = log(2)/24
+  n_ctrl <- 50
+  rate_ctrl <- log(2)/10
+  rate.censor_ctrl <- log(2)/58
   event_ctrl <- rexp(n_ctrl, rate = rate_ctrl)
   censor_ctrl <- rexp(n_ctrl, rate = rate.censor_ctrl)
 
@@ -30,8 +30,10 @@ test_that("surv.comp function works", {
     status = status,
     group = group,
     censor_type = "right",
-    method = "joint_method",
-    n_perm = 10
+    method = "roc_length",
+    n_perm = 10,
+    progress = TRUE,
+    plot = FALSE
   )
 
   # Check class

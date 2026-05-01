@@ -1,0 +1,20 @@
+## Test environments
+- macOS 15.7.2 (Apple Silicon), R 4.5.1
+- Local machine
+
+## R CMD check results
+0 errors ✔ | 0 warnings ✔ | 1 note ✔
+
+NOTE:
+- checking for future file timestamps ... unable to verify current time
+  This is a known system-related synchronization issue on macOS 15.7.2 
+  and does not affect package functionality or source code integrity.
+
+## Package description
+The ROCsurvcomp package provides nonparametric and semiparametric methods for comparing survival distributions under non-proportional hazards. It implements ROC length, overlap coefficient (OVL), and a joint ROC length–OVL-based inference framework, supporting right, left, and doubly censored data.
+
+## Additional comments
+- This is a new submission.
+- The vignette builds successfully and includes all required dependencies.
+- A small number of permutations (n_perm = 10) is used in all examples and vignettes to ensure that all code runs within CRAN's time limits without requiring \donttest{} tags.
+- No external data, APIs, or system-specific features are used.
