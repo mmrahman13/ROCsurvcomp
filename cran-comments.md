@@ -15,6 +15,9 @@ The ROCsurvcomp package provides nonparametric and semiparametric methods for co
 
 ## Resubmission
 This is a resubmission. Following the maintainer's suggestions, I have:
-- Changed the License to GPL-3 and removed the LICENSE file.
-- Added references with DOIs for the Bantis (2021) and Franco-Pereira (2021) papers to the Description field.
+- Updated the Description field to expand the acronym ROC to Receiver Operating Characteristic (ROC).
+- Removed `set.seed()` from three functions (`doublecen_survivaltest_functions.R`, `leftcen_survivaltest_functions.R`, `rightcen_survivaltest_functions.R`).
 
+I have also performed some additional minor changes:
+- Added additional references to the vignette.
+- Added an explanatory text to the examples of the `surv.comp()` function in the help file.

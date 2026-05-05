@@ -60,6 +60,7 @@ status <- c(status_trt, status_ctrl)
 group <- c(rep(1, n_trt), rep(2, n_ctrl))
 
 # Run `surv.comp()` function
+# Note: n_perm = 1000 is used here only for illustration purposes. Highly recommended n_perm to be set at 50,000 or more.
 surv.comp(
   time = time,
   status = status,

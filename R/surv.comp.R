@@ -23,7 +23,7 @@
 #'     \item \code{"ovl"}: overlap coefficient-based test
 #'     \item \code{"joint_method"}: joint ROC length-OVL-based test
 #'   }
-#' @param n_perm Integer specifying the number of permutation samples used to compute p-values. A small value is used in the example for computational efficiency; larger values are recommended in practice (typically 1,000 or more) to obtain more stable and reliable inference.
+#' @param n_perm Integer specifying the number of permutation samples used to compute p-values. A small value is used in the example for computational efficiency; larger values are recommended in practice (typically 50,000 or more) to obtain more stable and reliable inference.
 #' @param progress Logical value indicating whether to display a progress bar
 #'   during the permutation test. Default is \code{TRUE}. If \code{FALSE},
 #'   the computation runs silently without showing progress updates.
@@ -98,6 +98,8 @@
 #' group <- c(rep(1, n_trt), rep(2, n_ctrl))
 #'
 #' # Run surv.comp()
+#' # Note: n_perm = 10 is used here only for illustration purposes.
+#' # Highly recommended n_perm to be set at 50,000 or more.
 #' surv.comp(time = time, status = status, group = group, censor_type = "right",
 #'           method = "roc_length", n_perm = 10, progress = TRUE, plot = FALSE)
 #'

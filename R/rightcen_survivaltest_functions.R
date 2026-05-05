@@ -168,9 +168,6 @@ roc_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pro
 
   for (b in 1:boots) {
 
-    # For reproducibility of result
-    set.seed(b)
-
     # ----------- Progress bar update ----------
 
     if (show_progress && (b %% 10 == 0 || b == boots)) {
@@ -522,9 +519,6 @@ ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, boots, pro
   }
 
   for (b in 1:boots) {
-
-    # For reproducibility of result
-    set.seed(b)
 
     # ----------- Progress bar update ----------
 
@@ -888,9 +882,6 @@ joint.roc_ovl_RightCenSurvival_test <- function(time1, censor1, time2, censor2, 
   }
 
   for (b in 1:boots) {
-
-    # For reproducibility of result
-    set.seed(b)
 
     # ----------- Progress bar update ----------
 

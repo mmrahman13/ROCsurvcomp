@@ -1,7 +1,7 @@
 ---
 title: "ROCsurvcomp"
 author: "MM Rahman and LE Bantis"
-date: 2026-05-1
+date: 2026-05-05
 output: rmarkdown::html_vignette
 bibliography: references.bib
 vignette: >
@@ -27,15 +27,15 @@ To address these issues, the package implements a novel nonparametric and semipa
 
 ### ROC Length
 
-The first method is based on the length of the Receiver Operating Characteristic (ROC) curve. The ROC curve is one of the most widely used statistical methods for evaluating continuous classifiers that attempt to distinguish between two groups, typically a control group (group 1) and a diseased group (group 2) [@Pepe2003Statistical].
+The first method is based on the length of the Receiver Operating Characteristic (ROC) curve. The ROC curve is one of the most widely used statistical methods for evaluating continuous classifiers that attempt to distinguish between two groups, typically a control group (group 1) and a diseased group (group 2) [@Pepe2003Statistical]. The length of the ROC curve under the biomarker framework has been discussed by @Maswadeh2015Variable, @MartinezCamblor2017ROC, @FrancoPereira2020Biomarker, and @Bantis2021Length.
 
-Let $X_1$ and $X_2$ denote the continuous scores of the classifier for groups 1 and 2, respectively, with survival functions $S_1(\cdot) = 1 - F_1(\cdot)$ and $S_2(\cdot) = 1 - F_2(\cdot)$, where $F_1$ and $F_2$ are the cumulative distribution functions (CDF) of the two groups with a common support. The corresponding probability density functions (PDF) are denoted with $f_1(\cdot)$ and $f_2(\cdot)$. The implied ROC curve is then given by [@Pepe2003Statistical],
+Let $X_1$ and $X_2$ denote the continuous scores of the classifier for groups 1 and 2, respectively, with survival functions $S_1(\cdot) = 1 - F_1(\cdot)$ and $S_2(\cdot) = 1 - F_2(\cdot)$, where $F_1$ and $F_2$ are the cumulative distribution functions (CDF) of the two groups with a common support. The corresponding probability density functions (PDF) are denoted with $f_1(\cdot)$ and $f_2(\cdot)$. The implied ROC curve is then given by,
 
 \begin{eqnarray}
 \text{ROC}(p) = S_2(S_1^{-1}(p)), \quad p \in (0,1). 
 \end{eqnarray}
 
-The length of ROC curve, denoted by $l_{\text{ROC}}$, is defined as [@Bantis2021Length]:
+The length of ROC curve, denoted by $l_{\text{ROC}}$, is defined as:
 
 \begin{eqnarray}
     l_{\text{ROC}} = \int_{-\infty}^{\infty} \sqrt{1+\left( \frac{d \text{ROC}(p)}{dp}\right)^2} \, dp = \int_{-\infty}^{\infty} \sqrt{f_1^2(x) + f_2^2(x)} \, dx.
@@ -45,16 +45,16 @@ The range of ROC length is:  $\sqrt{2} \leq l_{\text{ROC}} \leq 2$. The lower bo
 
 ### Overlap Coefficient (OVL)
 
-The second method utilizes the overlap coefficient (OVL), which measures the similarity between two distributions using the common area between two probability density functions [@FrancoPereira2021Overlap]. The overlap area between the density curves of $f_1$ and $f_2$, defined as OVL, is given by,
+The second method utilizes the overlap coefficient (OVL), which measures the similarity between two distributions using the common area between two probability density functions [@FrancoPereira2021Overlap]. It was first introduced by @Weitzman1970Measures, and further studied by @Inman1989Overlap, @Reiser1999Confidence, and @Clemmons2000Nonparametric. The overlap area between the density curves of $f_1$ and $f_2$, defined as OVL, is given by,
 
 \begin{eqnarray}
 \text{OVL} = \int_{-\infty}^{\infty} \min\left[ f_1(x), f_2(x) \right] \, dx.
 \end{eqnarray}
 
-The range of OVL is:  $0 \leq OVL \leq 1$. OVL $=0$ if and only if the distributions of the two groups are completely disjoint, and OVL $=1$ if and only if the two distributions are exactly identical [@FrancoPereira2021Overlap].
+The range of OVL is:  $0 \leq OVL \leq 1$. OVL $=0$ if and only if the distributions of the two groups are completely disjoint, and OVL $=1$ if and only if the two distributions are exactly identical.
 
 ### Joint ROC length-OVL-based Method
-A joint inference framework is used to combine both ROC length and OVL measures. This method is based on the convex hull of the estimates obtained from permuted samples, constructed using their Euclidean distances from the origin. Before applying this procedure, both measures are standardized to a common scale using their corresponding percentile ranks.
+A joint inference framework is used to combine both ROC length and OVL measures. This method is based on the convex hull of the estimates obtained from permuted samples, constructed using their Euclidean distances from the origin. Before applying this procedure, both measures are standardized to a common scale using their corresponding percentile ranks. Details of this method are provided in Rahman and Bantis (2026, manuscript under review).
 
 ### Estimation of ROC-length and OVL
 Kernel density estimation is used to estimate the densities of the two underlying groups. A Box-Cox transformation is applied to the data prior to density estimation, as Silverman’s bandwidth (and other similar closed-form bandwidths) is optimized for approximately normal densities. Thus, transforming the data may improve density estimation, especially when Gaussian kernels are involved. In the case of the right-censored data, the kernel density estimator is adjusted by replacing the empirical CDF with the Kaplan-Meier estimator. For left- and doubly censored data, a similar approach is applied using the Turnbull estimator. Moreover, if the last observation is right-censored and/or the first observation is left-censored, censored observations beyond the last and/or before the first ordered uncensored event time are imputed by utilizing the Box-Cox transformed estimated parameters, following the approach described by @Bantis2021Length. Note that imputation is used only to complete the tails and not for the main body of the data.
@@ -105,7 +105,7 @@ knitr::include_graphics("figures/joint_plot.png")
     - `"ovl"`: overlap coefficient-based test  
     - `"joint_method"`: joint ROC length and OVL test.
 
-  - `n_perm`: Integer specifying the number of permutation samples used to compute p-values. A small value is used in the examples for computational efficiency; larger values are recommended in practice (typically 1,000 or more) to obtain more stable and reliable inference.
+  - `n_perm`: Integer specifying the number of permutation samples used to compute p-values. A small value is used in the examples for computational efficiency; larger values are recommended in practice (typically 50,000 or more) to obtain more stable and reliable inference.
 
   - `progress`: Logical value indicating whether to display a progress bar during the permutation test. Default is `TRUE`. If `FALSE`, the computation runs silently without showing progress updates.
 
@@ -161,6 +161,8 @@ plot(survfit(Surv(time, status == 0) ~ group), col = c("red", "blue"), lwd = 2,
      main = "Kaplan-Meier Curves")
 
 # Run `surv.comp` function
+# Note: n_perm = 10 is used here only for illustration purposes.
+# Highly recommended n_perm to be set at 50,000 or more.
 surv.comp(
   time = time,
   status = status,
